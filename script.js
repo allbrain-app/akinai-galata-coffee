@@ -337,16 +337,6 @@ function removeFromCart(idx) {
 function submitOrder() {
   if (cart.length === 0) return;
 
-  var userId = "";
-  var userName = "ゲスト";
-  try {
-    var profile = liff.getDecodedIDToken();
-    if (profile) {
-      userId = profile.sub || "";
-      userName = profile.name || "ゲスト";
-    }
-  } catch (e) {}
-
   var orderItems = cart.map(function(item) {
     return { name: item.name, price: item.price };
   });
@@ -354,13 +344,19 @@ function submitOrder() {
   var prevLevel = getLevel(totalOrderCount);
   var newOrderCount = totalOrderCount + cart.length;
 
+  // LIFF の accessToken を取得
+  var accessToken = "";
+  try {
+    accessToken = liff.getAccessToken();
+  } catch (e) {
+    console.error("getAccessToken error:", e);
+  }
+
   fetch(GAS_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      action: "placeOrder",
-      userId: userId,
-      userName: userName,
+      accessToken: accessToken,
       tableId: tableId,
       items: orderItems
     })
@@ -381,11 +377,16 @@ function submitOrder() {
           openModal("completeModal");
         }
 
+        var userId = "";
+        try {
+          var profile = liff.getDecodedIDToken();
+          if (profile) userId = profile.sub || "";
+        } catch (e) {}
         if (userId) {
           preloadHistoryData(userId);
         }
       } else {
-        showToast("注文に失敗しました");
+        showToast("注文に失敗しました: " + (d.message || ""));
       }
     })
     .catch(function(err) {
@@ -393,6 +394,7 @@ function submitOrder() {
       showToast("通信エラーが発生しました");
     });
 }
+
 
 // ============================================================
 // レベルアップ演出
