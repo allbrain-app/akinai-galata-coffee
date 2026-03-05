@@ -4,324 +4,212 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kitchen Monitor</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background-color: #222; color: #fff; font-family: sans-serif; padding: 20px; }
+    body { background-color: #222; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 20px; margin: 0; }
     .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
-    .order-card { background-color: #333; border: 1px solid #444; border-radius: 8px; margin-bottom: 15px; padding: 15px; width: 100%; border-left: 5px solid #03dac6; transition: all 0.3s ease; }
-    .new-order-flash { animation: flash-animation 1s ease-out; }
-    @keyframes flash-animation { 0% { background-color: #03dac6; } 100% { background-color: #333; } }
-    .order-table { font-size: 1.4rem; font-weight: bold; color: #fff; background-color: #03dac6; color:#000; padding: 2px 8px; border-radius: 4px; margin-right: 10px;}
-    .order-time { font-size: 1.0rem; color: #aaa; margin-left: 10px;}
-    .order-user { font-size: 0.9rem; color: #aaa; display: block; margin-top: 5px;}
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    h2 { margin: 0; }
+
+    .order-card { background: #333; border: 1px solid #444; border-radius: 8px; margin-bottom: 15px; padding: 15px; border-left: 5px solid #3b82f6; transition: all 0.3s ease; }
+    .new-order-flash { animation: flash 1s ease-out; }
+    @keyframes flash { 0% { background: #3b82f6; } 100% { background: #333; } }
+
+    .order-table { font-size: 1.4rem; font-weight: bold; background: #3b82f6; color: #fff; padding: 2px 8px; border-radius: 4px; margin-right: 10px; }
+    .order-time { font-size: 1rem; color: #aaa; margin-left: 10px; }
+    .order-user { font-size: 0.9rem; color: #aaa; display: block; margin-top: 5px; }
     .order-items { font-size: 1.2rem; margin: 10px 0; font-weight: bold; }
     .btn-done { width: 100%; height: 50px; font-size: 1.2rem; font-weight: bold; }
-    .checkout-card { background-color: #4a1c1c; border: 1px solid #ff5555; border-radius: 8px; margin-bottom: 15px; padding: 15px; border-left: 8px solid #ff5555; animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 85, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0); } }
-    .checkout-table { font-size: 1.5rem; font-weight: bold; color: #fff; background-color: #dc3545; padding: 2px 10px; border-radius: 4px; }
-    .checkout-total { font-size: 1.5rem; font-weight: bold; color: #ffaeae; }
+
+    .history-section { margin-top: 50px; border-top: 1px dashed #555; padding-top: 20px; opacity: 0.6; }
+    .history-card { background: #2a2a2a; border: 1px solid #333; margin-bottom: 10px; padding: 10px; border-radius: 5px; }
+
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-family: inherit; }
+    .btn-outline { background: transparent; border: 1px solid #666; color: #fff; }
+    .btn-outline:hover { border-color: #aaa; }
+    .btn-success { background: #22c55e; color: #fff; }
+    .btn-dark { background: #444; border: 1px solid #666; color: #fff; }
+    .btn-refresh { background: transparent; border: 1px solid #666; color: #fff; }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-    .form-check-input:checked { background-color: #dc3545; border-color: #dc3545; }
+
+    /* メニュー管理 */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: #333; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 24px; }
+    .modal-box h3 { margin-top: 0; }
     .menu-row { border-bottom: 1px solid #444; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-    .history-section { margin-top: 50px; border-top: 1px dashed #555; padding-top: 20px; opacity: 0.6; }
-    .history-card { background-color: #2a2a2a; border: 1px solid #333; margin-bottom: 10px; padding: 10px; border-radius: 5px; }
+    .form-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .form-switch input { opacity: 0; width: 0; height: 0; }
+    .form-switch .slider { position: absolute; cursor: pointer; inset: 0; background: #666; border-radius: 24px; transition: 0.3s; }
+    .form-switch .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+    .form-switch input:checked + .slider { background: #ef4444; }
+    .form-switch input:checked + .slider:before { transform: translateX(20px); }
   </style>
 </head>
 <body>
 
-<div class="container">
+<div style="max-width:800px; margin:0 auto;">
   <div class="header-area">
-    <div class="d-flex align-items-center gap-3">
-      <h2 class="m-0">🍽 Kitchen Monitor</h2>
-      <button class="btn btn-dark border-secondary" onclick="openOwnerModal()">👑 店舗管理</button>
-      <button class="btn btn-outline-secondary" id="btn-sound" onclick="toggleSound()">🔇 通知OFF</button>
+    <div class="header-left">
+      <h2>🍽 Kitchen Monitor</h2>
+      <button class="btn btn-dark" onclick="openMenuManager()">📝 メニュー管理</button>
+      <button class="btn btn-outline" id="btn-sound" onclick="toggleSound()">🔇 通知OFF</button>
     </div>
-    <button class="btn btn-outline-light" onclick="loadOrders(true)" id="btn-refresh">🔄 更新</button>
-  </div>
-
-  <div id="checkout-section" style="display:none;">
-    <h4 class="text-danger border-bottom border-danger pb-2 mb-3">💸 会計リクエスト</h4>
-    <div id="checkout-list"></div>
-    <hr class="border-secondary my-4">
+    <button class="btn btn-refresh" onclick="loadOrders(true)" id="btn-refresh">🔄 更新</button>
   </div>
 
   <div id="order-list">
-    <div class="text-center text-secondary mt-5">読み込み中...</div>
+    <div style="text-align:center; color:#888; margin-top:40px;">読み込み中...</div>
   </div>
 
   <div class="history-section">
     <h5>🏁 直近の履歴</h5>
-    <div id="done-list"><div class="small text-secondary">まだありません</div></div>
+    <div id="done-list"><div style="color:#888; font-size:14px;">まだありません</div></div>
   </div>
 </div>
 
-<div class="modal fade" id="ownerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-dark text-white border-secondary">
-        <h5 class="modal-title">👑 店舗管理画面</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body bg-dark text-white">
-        <ul class="nav nav-tabs border-secondary mb-3"><li class="nav-item"><button class="nav-link active text-light" data-bs-toggle="tab" data-bs-target="#analysis-pane">📊 売上分析</button></li><li class="nav-item"><button class="nav-link text-light" data-bs-toggle="tab" data-bs-target="#menu-pane" onclick="fetchMenuForOwner()">📝 メニュー管理</button></li><li class="nav-item"><button class="nav-link text-light" data-bs-toggle="tab" data-bs-target="#ai-log-pane" onclick="fetchAiLog()">🤖 AI追客</button></li></ul>
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="analysis-pane">
-            <div class="row text-center mb-4"><div class="col-6"><div class="small text-secondary">総売上</div><div class="fs-3 fw-bold text-warning" id="owner-total-sales">¥0</div></div><div class="col-6"><div class="small text-secondary">注文数</div><div class="fs-3 fw-bold" id="owner-order-count">0件</div></div></div>
-            <div style="height: 300px; position: relative;"><canvas id="salesChart"></canvas></div>
-            <div class="mt-4 text-center"><button class="btn btn-outline-secondary w-100" onclick="fetchOwnerData()">更新</button></div>
-          </div>
-          <div class="tab-pane fade" id="menu-pane">
-            <div class="alert alert-dark border-secondary small text-secondary">赤スイッチ＝売り切れ</div>
-            <div id="owner-menu-list"><div class="text-center py-5">読み込み中...</div></div>
-          </div>
-          <div class="tab-pane fade" id="ai-log-pane">
-            <div class="row text-center mb-4">
-              <div class="col-4"><div class="small text-secondary">総ユーザー</div><div class="fs-3 fw-bold text-info" id="ai-total-users">-</div></div>
-              <div class="col-4"><div class="small text-secondary">VIP</div><div class="fs-3 fw-bold text-warning" id="ai-vip-count">-</div></div>
-              <div class="col-4"><div class="small text-secondary">休眠</div><div class="fs-3 fw-bold text-danger" id="ai-dormant-count">-</div></div>
-            </div>
-            <div style="height: 250px; position: relative;"><canvas id="segmentChart"></canvas></div>
-            <h6 class="mt-4 mb-2 text-secondary">👤 ユーザー一覧</h6>
-            <div id="ai-user-list" style="max-height: 300px; overflow-y: auto;"></div>
-          </div>
-        </div>
-      </div>
+<!-- メニュー管理モーダル -->
+<div class="modal-overlay" id="menuModal">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="margin:0;">📝 メニュー管理</h3>
+      <button class="btn btn-outline" onclick="closeMenuManager()">✕</button>
     </div>
+    <div style="color:#aaa; font-size:13px; margin-bottom:12px;">赤スイッチ＝売り切れ</div>
+    <div id="owner-menu-list"><div style="text-align:center; padding:30px 0; color:#888;">読み込み中...</div></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="config.js"></script>
-
 <script>
-  let ownerModal;
-  let salesChartInstance = null;
-  let ownerMenuItems = [];
-  let previousOrderIds = new Set();
-  let previousCheckoutIds = new Set();
-  let isSoundOn = false;
-  let isFirstLoad = true;
-  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-  const checkoutAudio = new Audio("https://actions.google.com/sounds/v1/alarms/mechanic_clock_ring.ogg");
+  var previousOrderIds = new Set();
+  var isSoundOn = false;
+  var isFirstLoad = true;
+  var audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
   window.onload = function() {
     if (typeof GAS_API_URL === 'undefined') { alert("config.js error"); return; }
-    ownerModal = new bootstrap.Modal(document.getElementById('ownerModal'));
     loadOrders();
-    setInterval(() => loadOrders(false), 15000);
+    setInterval(function() { loadOrders(false); }, 15000);
   };
 
   function toggleSound() {
     isSoundOn = !isSoundOn;
-    const btn = document.getElementById('btn-sound');
+    var btn = document.getElementById('btn-sound');
     if (isSoundOn) {
-      btn.innerHTML = "🔊 通知ON"; btn.classList.replace('btn-outline-secondary', 'btn-success');
-      audio.volume = 0; audio.play().then(()=>{audio.pause();audio.volume=1.0;});
+      btn.textContent = "🔊 通知ON";
+      btn.style.borderColor = "#22c55e";
+      audio.volume = 0; audio.play().then(function() { audio.pause(); audio.volume = 1.0; });
     } else {
-      btn.innerHTML = "🔇 通知OFF"; btn.classList.replace('btn-success', 'btn-outline-secondary');
+      btn.textContent = "🔇 通知OFF";
+      btn.style.borderColor = "#666";
     }
   }
 
-  function loadOrders(manual = false) {
-    const btn = document.getElementById('btn-refresh');
-    if(manual) { btn.innerHTML = "🔄 ..."; btn.classList.add('spin'); }
+  function loadOrders(manual) {
+    var btn = document.getElementById('btn-refresh');
+    if (manual) { btn.textContent = "🔄 ..."; btn.classList.add('spin'); }
     fetch(GAS_API_URL + "?action=getOrders")
-      .then(res => res.json())
-      .then(data => {
-        displayOrders(data.orders);
-        displayCheckouts(data.checkouts);
-        if(manual) { btn.innerHTML = "🔄 更新"; btn.classList.remove('spin'); }
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        displayOrders(d.orders || []);
+        if (manual) { btn.textContent = "🔄 更新"; btn.classList.remove('spin'); }
+        isFirstLoad = false;
       })
-      .catch(err => { console.error(err); if(manual) btn.innerHTML = "⚠️ エラー"; });
+      .catch(function() { if (manual) btn.textContent = "⚠️ エラー"; });
   }
 
   function displayOrders(orders) {
-    const container = document.getElementById('order-list');
-    const currentIds = new Set(orders.map(o => o.id));
-    let hasNew = false;
-    
-    if (!orders || orders.length === 0) {
-      container.innerHTML = '<div class="text-center text-secondary mt-5">現在、未提供の注文はありません ✅</div>';
+    var container = document.getElementById('order-list');
+    var currentIds = new Set(orders.map(function(o) { return o.id; }));
+    var hasNew = false;
+
+    if (!orders.length) {
+      container.innerHTML = '<div style="text-align:center; color:#888; margin-top:40px;">現在、未提供の注文はありません ✅</div>';
     } else {
-      let html = "";
-      orders.forEach(order => {
-        const isNew = (!previousOrderIds.has(order.id) && !isFirstLoad);
-        if(isNew) hasNew = true;
-        const flashClass = isNew ? "new-order-flash" : "";
-        const itemsHtml = order.items.map(item => `<div>・${item}</div>`).join("");
-        html += `
-          <div class="order-card ${flashClass}" id="card-${order.id}">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <span class="order-table">Table ${order.tableId}</span>
-                <span class="order-time">${order.time}</span>
-                <span class="order-user">${order.user} 様</span>
-                ${isNew?'<span class="badge bg-danger ms-2">NEW!</span>':''}
-              </div>
-            </div>
-            <hr style="margin:8px 0; border-color:#555;"><div class="order-items">${itemsHtml}</div>
-            <div class="mt-3"><button class="btn btn-success btn-done" onclick="completeOrder('${order.id}','${order.user}','${order.items.join(',')}')">提供完了</button></div>
-          </div>`;
+      var html = "";
+      orders.forEach(function(order) {
+        var isNew = !previousOrderIds.has(order.id) && !isFirstLoad;
+        if (isNew) hasNew = true;
+        var flashClass = isNew ? " new-order-flash" : "";
+        var itemsHtml = order.items.map(function(item) { return '<div>・' + item + '</div>'; }).join("");
+        html += '<div class="order-card' + flashClass + '" id="ocard-' + order.id + '">' +
+          '<div style="display:flex; justify-content:space-between; align-items:start;">' +
+          '<div><span class="order-table">Table ' + order.tableId + '</span><span class="order-time">' + order.time + '</span>' +
+          '<span class="order-user">' + order.user + ' 様</span>' +
+          (isNew ? '<span style="background:#ef4444;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:8px;">NEW!</span>' : '') +
+          '</div></div>' +
+          '<hr style="margin:8px 0; border-color:#555;">' +
+          '<div class="order-items">' + itemsHtml + '</div>' +
+          '<button class="btn btn-success btn-done" onclick="completeOrder(\'' + order.id + '\',\'' + order.user + '\')">提供完了</button>' +
+          '</div>';
       });
       container.innerHTML = html;
     }
 
-    if(hasNew && isSoundOn) { audio.currentTime=0; audio.play().catch(e=>{}); }
+    if (hasNew && isSoundOn) { audio.currentTime = 0; audio.play().catch(function() {}); }
     previousOrderIds = currentIds;
   }
 
-  function displayCheckouts(checkouts) {
-    const section = document.getElementById('checkout-section');
-    const container = document.getElementById('checkout-list');
-    const currentIds = new Set(checkouts.map(c => c.userId)); 
-    let hasNew = false;
-
-    if (!checkouts || checkouts.length === 0) {
-      section.style.display = 'none';
-      previousCheckoutIds.clear();
-      return;
-    }
-
-    section.style.display = 'block';
-    let html = "";
-    checkouts.forEach(c => {
-      const isNew = (!previousCheckoutIds.has(c.userId) && !isFirstLoad);
-      if(isNew) hasNew = true;
-      html += `
-        <div class="checkout-card">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-             <div>
-               <span class="checkout-table">Table ${c.tableId}</span>
-               <span class="ms-2 fs-5 fw-bold">${c.user} 様</span>
-             </div>
-             <div class="checkout-total">¥${c.total.toLocaleString()}</div>
-          </div>
-          <div class="text-white-50 small mb-3">会計をお願いします</div>
-          <button class="btn btn-danger w-100 fw-bold py-3" onclick="confirmPayment('${c.userId}', '${c.user}')">会計済 (消込)</button>
-        </div>
-      `;
-    });
-    container.innerHTML = html;
-
-    if(hasNew && isSoundOn) { checkoutAudio.currentTime=0; checkoutAudio.play().catch(e=>{}); }
-    previousCheckoutIds = currentIds;
-    isFirstLoad = false;
-  }
-
-  function completeOrder(orderId, user, items) {
-    const card = document.getElementById(`card-${orderId}`);
-    if(card) card.style.opacity = "0.3";
-    const payload = { action: "completeOrder", orderId: orderId };
-    fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) })
-    .then(res => res.json())
-    .then(data => {
-      if(data.status === "success") {
-        if(card) card.remove();
-        if(document.querySelectorAll('.order-card').length === 0) loadOrders();
-        addHistory(user, items);
-      } else { alert("エラー"); loadOrders(); }
-    });
-  }
-
-  function confirmPayment(userId, userName) {
-    if(!confirm(`${userName}様の会計を完了し、履歴へ移動しますか？`)) return;
-    const payload = { action: "confirmPayment", userId: userId };
-    fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) })
-    .then(res => res.json())
-    .then(data => {
-      if(data.status === "success") {
-        alert("会計処理が完了しました");
-        loadOrders(); 
-      } else { alert("エラー: " + data.message); }
-    });
-  }
-
-  function addHistory(user, items) {
-    const list = document.getElementById('done-list');
-    if(list.querySelector('.text-secondary')) list.innerHTML = "";
-    const now = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
-    const html = `<div class="history-card"><div class="d-flex justify-content-between small text-muted"><span>${now} - ${user}</span><span>完了</span></div><div class="fw-bold">${items}</div></div>`;
-    list.insertAdjacentHTML('afterbegin', html);
-  }
-
-  function openOwnerModal() { const p=prompt("パスワード(1234)"); if(p!=="1234")return; ownerModal.show(); fetchOwnerData(); }
-  function fetchOwnerData() { document.getElementById('owner-total-sales').innerText="---"; fetch(GAS_API_URL,{method:"POST",body:JSON.stringify({action:"getOwnerData"})}).then(r=>r.json()).then(d=>renderOwnerDashboard(d)); }
-  function renderOwnerDashboard(d) { document.getElementById('owner-total-sales').innerText="¥"+d.totalSales.toLocaleString(); document.getElementById('owner-order-count').innerText=d.orderCount; const c=document.getElementById('salesChart').getContext('2d'); if(salesChartInstance)salesChartInstance.destroy(); salesChartInstance=new Chart(c,{type:'bar',data:{labels:d.ranking.map(i=>i.name),datasets:[{label:'点数',data:d.ranking.map(i=>i.count),backgroundColor:'#03dac6'}]},options:{indexAxis:'y',scales:{x:{beginAtZero:true}}}}); }
-  function fetchMenuForOwner() { fetch(GAS_API_URL+"?action=getMenu").then(r=>r.json()).then(d=>{renderOwnerMenu(d);}).catch(e=>{}); }
-  function renderOwnerMenu(items) { 
-    const c=document.getElementById('owner-menu-list'); c.innerHTML=""; 
-    items.forEach(i=>{ 
-      const ch=i.isSoldOut?"checked":""; const st=i.isSoldOut?"売切":"販売中"; const cl=i.isSoldOut?"text-danger":"text-success";
-      c.innerHTML+=`<div class="menu-row"><div><div class="fw-bold">${i.name}</div></div><div class="d-flex align-items-center gap-3"><span class="small ${cl}" id="st-${i.id}">${st}</span><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="sw-${i.id}" ${ch} onchange="tgStock('${i.id}')"></div></div></div>`;
-    }); 
-  }
-  function tgStock(id) { 
-    const ck=document.getElementById(`sw-${id}`); const st=document.getElementById(`st-${id}`);
-    const v=ck.checked; st.innerText="..."; 
-    fetch(GAS_API_URL,{method:"POST",body:JSON.stringify({action:"updateStock",itemId:id,isSoldOut:v})})
-    .then(r=>r.json()).then(d=>{ st.innerText=v?"売切":"販売中"; st.className=v?"small text-danger":"small text-success"; });
-  }
-
-  // -------------------------------------------------------
-  // Step5: AI追客ログ
-  // -------------------------------------------------------
-  var segmentChartInstance = null;
-
-  function fetchAiLog() {
-    document.getElementById('ai-total-users').innerText = "...";
-    fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ action: "getAiLog" }) })
+  function completeOrder(orderId, user) {
+    var card = document.getElementById('ocard-' + orderId);
+    if (card) card.style.opacity = "0.3";
+    fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ action: "completeOrder", orderId: orderId }) })
       .then(function(r) { return r.json(); })
-      .then(function(d) { renderAiLog(d); });
+      .then(function(d) {
+        if (d.status === "success") {
+          if (card) card.remove();
+          if (!document.querySelectorAll('.order-card').length) loadOrders();
+          addDoneHistory(user);
+        } else { alert("エラー"); loadOrders(); }
+      });
   }
 
-  function renderAiLog(d) {
-    document.getElementById('ai-total-users').innerText = d.total + "人";
-    document.getElementById('ai-vip-count').innerText = (d.segments.vip || 0) + "人";
-    document.getElementById('ai-dormant-count').innerText = ((d.segments.dormant30 || 0) + (d.segments.dormant60 || 0)) + "人";
+  function addDoneHistory(user) {
+    var list = document.getElementById('done-list');
+    if (list.querySelector('div[style]')) list.innerHTML = "";
+    var now = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    list.insertAdjacentHTML('afterbegin', '<div class="history-card"><div style="display:flex; justify-content:space-between; font-size:13px; color:#888;"><span>' + now + ' - ' + user + '</span><span>完了</span></div></div>');
+  }
 
-    var ctx = document.getElementById('segmentChart').getContext('2d');
-    if (segmentChartInstance) segmentChartInstance.destroy();
-    segmentChartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['VIP', '本日来店', '7日以内', '30日ご無沙汰', '60日以上'],
-        datasets: [{
-          data: [d.segments.vip || 0, d.segments.active || 0, d.segments.remind7 || 0, d.segments.dormant30 || 0, d.segments.dormant60 || 0],
-          backgroundColor: ['#ffc107', '#03dac6', '#4fc3f7', '#ff9800', '#f44336']
-        }]
-      },
-      options: {
-        plugins: { legend: { labels: { color: '#ccc', font: { size: 12 } } } }
-      }
+  // メニュー管理
+  function openMenuManager() {
+    document.getElementById('menuModal').classList.add('show');
+    fetch(GAS_API_URL + "?action=getMenu").then(function(r) { return r.json(); }).then(function(d) { renderOwnerMenu(d); });
+  }
+
+  function closeMenuManager() {
+    document.getElementById('menuModal').classList.remove('show');
+  }
+
+  function renderOwnerMenu(items) {
+    var c = document.getElementById('owner-menu-list');
+    var html = "";
+    items.forEach(function(i) {
+      var ch = i.isSoldOut ? "checked" : "";
+      var st = i.isSoldOut ? "売切" : "販売中";
+      var cl = i.isSoldOut ? "color:#ef4444;" : "color:#22c55e;";
+      html += '<div class="menu-row"><div><strong>' + i.name + '</strong></div>' +
+        '<div style="display:flex; align-items:center; gap:12px;">' +
+        '<span style="font-size:13px;' + cl + '" id="st-' + i.id + '">' + st + '</span>' +
+        '<label class="form-switch"><input type="checkbox" ' + ch + ' onchange="toggleStock(\'' + i.id + '\')"><span class="slider"></span></label>' +
+        '</div></div>';
     });
+    c.innerHTML = html;
+  }
 
-    var list = document.getElementById('ai-user-list');
-    if (!d.users || d.users.length === 0) {
-      list.innerHTML = '<div class="text-secondary small text-center py-3">ユーザーデータなし</div>';
-      return;
-    }
-    var html = '';
-    d.users.forEach(function(u) {
-      var badgeColor = 'secondary';
-      if (u.segment === 'VIP（常連）') badgeColor = 'warning';
-      else if (u.segment === '本日来店') badgeColor = 'info';
-      else if (u.segment === '60日以上（休眠）') badgeColor = 'danger';
-      else if (u.segment === '30日ご無沙汰') badgeColor = 'warning';
-
-      html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #444;">'
-        + '<div>'
-        + '<div class="fw-bold">' + u.name + '</div>'
-        + '<div class="small text-secondary">' + u.visits + '回来店 / ' + u.lastVisit + '</div>'
-        + (u.persona !== '-' ? '<div class="small text-warning">' + u.persona + '</div>' : '')
-        + '</div>'
-        + '<span class="badge bg-' + badgeColor + '" style="font-size:0.7rem;">' + u.segment + '</span>'
-        + '</div>';
-    });
-    list.innerHTML = html;
+  function toggleStock(id) {
+    var checkbox = document.querySelector('#owner-menu-list input[onchange*="' + id + '"]');
+    var st = document.getElementById('st-' + id);
+    var isSoldOut = checkbox.checked;
+    st.textContent = "...";
+    fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ action: "updateStock", itemId: id, isSoldOut: isSoldOut }) })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        st.textContent = isSoldOut ? "売切" : "販売中";
+        st.style.color = isSoldOut ? "#ef4444" : "#22c55e";
+      });
   }
 </script>
-
 </body>
 </html>
