@@ -12,6 +12,7 @@ var myTasteCache = null;
 var totalOrderCount = 0;
 var currentScreen = "menu";
 
+
 // レベル定義
 var LEVELS = [
   { lv: 1, name: "ビギナー", icon: "🌱", req: 1, reqLabel: "初回注文", sommelier: "基本モード", shopBenefit: "—", color: "#9ca3af", bg: "#f9fafb" },
