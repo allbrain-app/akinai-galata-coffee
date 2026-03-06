@@ -498,7 +498,7 @@ function renderMyTaste() {
       renderHistoryInTaste(d);
       var tasteData = calculateTasteData(d);
       renderTasteChart(tasteData);
-      renderTastePeriodSelector();  // ★ ここに移動 ★
+      renderTastePeriodSelector();
     })
     .catch(function(e) {
       console.error("履歴取得エラー:", e);
@@ -506,9 +506,11 @@ function renderMyTaste() {
         renderHistoryInTaste(historyCache);
         var tasteData = calculateTasteData(historyCache);
         renderTasteChart(tasteData);
-        renderTastePeriodSelector();  // ★ ここにも追加 ★
+        renderTastePeriodSelector();
       }
     });
+}   // ← この閉じ括弧があるか確認
+
 
 function renderTastePeriodSelector() {
   if (document.getElementById("taste-period-selector")) return;
