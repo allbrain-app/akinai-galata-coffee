@@ -605,19 +605,36 @@ function closeMenuForm() {
 function previewImage(input) {
   var file = input.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) {
-    showToast("画像は5MB以下にしてください");
-    return;
-  }
+  var preview = document.getElementById("mf-image-preview");
+  var status = document.getElementById("mf-upload-status");
   var reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById("mf-image-preview").innerHTML = '<img src="' + e.target.result + '">';
-    document.getElementById("mf-upload-status").textContent = "アップロード中...";
-    document.getElementById("mf-upload-status").style.color = "var(--text-muted)";
-    uploadImage(e.target.result, file.name);
+    resizeToSquare(e.target.result, 512, function(squareBase64) {
+      preview.innerHTML = '<img src="' + squareBase64 + '" style="width:120px; height:120px; border-radius:8px; border:1px solid var(--border-color); object-fit:cover;">';
+      status.textContent = "アップロード中...";
+      uploadImage(squareBase64, file.name);
+    });
   };
   reader.readAsDataURL(file);
 }
+
+function resizeToSquare(base64Data, size, callback) {
+  var img = new Image();
+  img.onload = function() {
+    var canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    var ctx = canvas.getContext("2d");
+    // 中央を基準に正方形クロップ
+    var srcSize = Math.min(img.width, img.height);
+    var sx = (img.width - srcSize) / 2;
+    var sy = (img.height - srcSize) / 2;
+    ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size);
+    callback(canvas.toDataURL("image/jpeg", 0.85));
+  };
+  img.src = base64Data;
+}
+
 
 function uploadImage(base64Data, fileName) {
   var status = document.getElementById("mf-upload-status");
