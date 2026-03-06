@@ -345,25 +345,54 @@ function submitOrder() {
   var prevLevel = getLevel(totalOrderCount);
   var newOrderCount = totalOrderCount + cart.length;
 
-  // LIFF の accessToken を取得
+  // ユーザー情報取得
   var accessToken = "";
+  var userId = "";
+  var userName = "ゲスト";
   try {
-    accessToken = liff.getAccessToken();
+    accessToken = liff.getAccessToken() || "";
   } catch (e) {
-    console.error("getAccessToken error:", e);
+    console.warn("getAccessToken failed:", e);
   }
+  try {
+    var profile = liff.getDecodedIDToken();
+    if (profile) {
+      userId = profile.sub || "";
+      userName = profile.name || "ゲスト";
+    }
+  } catch (e) {}
 
+  var payload = {
+    action: "placeOrder",
+    accessToken: accessToken,
+    userId: userId,
+    userName: userName,
+    tableId: tableId,
+    items: orderItems
+  };
+
+  console.log("送信データ:", JSON.stringify(payload));
+
+  // ★ Content-Type を指定しない（CORSプリフライト回避）
   fetch(GAS_API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      accessToken: accessToken,
-      tableId: tableId,
-      items: orderItems
-    })
+    body: JSON.stringify(payload)
   })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
+    .then(function(r) {
+      console.log("レスポンスステータス:", r.status, r.url);
+      return r.text(); // まずtextで取得
+    })
+    .then(function(text) {
+      console.log("レスポンス本文:", text);
+      var d;
+      try {
+        d = JSON.parse(text);
+      } catch (e) {
+        console.error("JSONパースエラー:", text);
+        showToast("サーバーエラーが発生しました");
+        return;
+      }
+
       if (d.status === "success") {
         totalOrderCount = newOrderCount;
         cart = [];
@@ -378,23 +407,20 @@ function submitOrder() {
           openModal("completeModal");
         }
 
-        var userId = "";
-        try {
-          var profile = liff.getDecodedIDToken();
-          if (profile) userId = profile.sub || "";
-        } catch (e) {}
         if (userId) {
           preloadHistoryData(userId);
         }
       } else {
-        showToast("注文に失敗しました: " + (d.message || ""));
+        console.error("注文エラー:", d.message);
+        showToast("注文に失敗しました: " + (d.message || "不明"));
       }
     })
     .catch(function(err) {
-      console.error("Order error:", err);
+      console.error("通信エラー詳細:", err);
       showToast("通信エラーが発生しました");
     });
 }
+
 
 
 
