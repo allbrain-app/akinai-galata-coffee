@@ -589,16 +589,63 @@ function renderHistoryInTaste(data) {
     return;
   }
 
+  var SHOW_COUNT = 5;
   var html = "";
-  items.forEach(function(item) {
+
+  // 上位5件
+  var visibleItems = items.slice(0, SHOW_COUNT);
+  visibleItems.forEach(function(item) {
     var name = item.itemName || item.name || "不明";
     var price = item.price || 0;
     var time = item.timestamp || item.time || "";
     html += '<div class="history-item"><div><div class="h-name">' + name + '</div><div class="h-date">' + time + '</div></div>' +
       '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
   });
+
+  // 残りがあればプルダウン
+  if (items.length > SHOW_COUNT) {
+    var remaining = items.slice(SHOW_COUNT);
+
+    html += '<div id="history-more-wrap">';
+    html += '<button id="history-toggle-btn" onclick="toggleHistoryMore()" style="'
+      + 'width:100%;padding:12px;margin-top:8px;background:#f9fafb;border:1px solid #e5e7eb;'
+      + 'border-radius:10px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;'
+      + 'display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">'
+      + '過去の注文をもっと見る（' + remaining.length + '件）'
+      + '<span id="history-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>'
+      + '</button>';
+
+    html += '<div id="history-more-list" style="display:none;">';
+    remaining.forEach(function(item) {
+      var name = item.itemName || item.name || "不明";
+      var price = item.price || 0;
+      var time = item.timestamp || item.time || "";
+      html += '<div class="history-item"><div><div class="h-name">' + name + '</div><div class="h-date">' + time + '</div></div>' +
+        '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
+    });
+    html += '</div></div>';
+  }
+
   container.innerHTML = html;
 }
+
+function toggleHistoryMore() {
+  var list = document.getElementById("history-more-list");
+  var arrow = document.getElementById("history-arrow");
+  var btn = document.getElementById("history-toggle-btn");
+
+  if (list.style.display === "none") {
+    list.style.display = "block";
+    arrow.style.transform = "rotate(180deg)";
+    btn.querySelector("span").previousSibling.textContent = "閉じる ";
+  } else {
+    list.style.display = "none";
+    arrow.style.transform = "rotate(0deg)";
+    var count = list.querySelectorAll(".history-item").length;
+    btn.querySelector("span").previousSibling.textContent = "過去の注文をもっと見る（" + count + "件） ";
+  }
+}
+
 
 // ============================================================
 // 味覚チャート
