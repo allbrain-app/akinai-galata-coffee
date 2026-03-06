@@ -233,6 +233,21 @@
 </head>
 <body>
 
+<!-- ======== ログイン画面 ======== -->
+<div id="login-screen" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center;">
+  <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:32px; width:90%; max-width:360px; box-shadow:var(--shadow-md); text-align:center;">
+    <div style="font-size:40px; margin-bottom:12px;">🔐</div>
+    <div style="font-size:18px; font-weight:700; margin-bottom:4px;">Admin Login</div>
+    <div style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">管理画面にアクセスするにはパスワードを入力してください</div>
+    <form onsubmit="doLogin(event)">
+      <input class="form-input" type="password" id="login-password" placeholder="パスワード" style="text-align:center; font-size:18px; letter-spacing:4px; margin-bottom:12px;" autofocus>
+      <div id="login-error" style="font-size:13px; color:var(--danger); margin-bottom:12px; min-height:20px;"></div>
+      <button type="submit" class="btn btn-primary btn-lg" id="login-btn">ログイン</button>
+    </form>
+  </div>
+</div>
+
+  
 <div class="header">
   <div class="header-inner">
     <span class="header-title">⚙️ Admin</span>
@@ -477,8 +492,10 @@ var currentCustomerId = "";
 
 window.onload = function() {
   if (typeof GAS_API_URL === "undefined") { alert("config.js error"); return; }
-  loadOrders();
-  orderInterval = setInterval(function() { if (currentTab === "orders") loadOrders(false); }, 15000);
+  // セッション確認
+  if (sessionStorage.getItem("admin_auth") === "ok") {
+    hideLogin();
+  }
 };
 
 function switchTab(tab) {
@@ -1260,6 +1277,47 @@ function renderSales(data) {
   container.innerHTML = html;
 }
 
+// ============================================================
+// ログイン
+// ============================================================
+function doLogin(e) {
+  e.preventDefault();
+  var pw = document.getElementById("login-password").value;
+  var errEl = document.getElementById("login-error");
+  var btn = document.getElementById("login-btn");
+  if (!pw) { errEl.textContent = "パスワードを入力してください"; return; }
+  btn.textContent = "確認中...";
+  btn.disabled = true;
+  errEl.textContent = "";
+  fetch(GAS_API_URL, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "adminLogin", password: pw })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.textContent = "ログイン";
+      btn.disabled = false;
+      if (d.status === "success") {
+        sessionStorage.setItem("admin_auth", "ok");
+        hideLogin();
+      } else {
+        errEl.textContent = d.message || "ログインに失敗しました";
+        document.getElementById("login-password").value = "";
+        document.getElementById("login-password").focus();
+      }
+    })
+    .catch(function() {
+      btn.textContent = "ログイン";
+      btn.disabled = false;
+      errEl.textContent = "通信エラー";
+    });
+}
+
+function hideLogin() {
+  document.getElementById("login-screen").style.display = "none";
+  loadOrders();
+  orderInterval = setInterval(function() { if (currentTab === "orders") loadOrders(false); }, 15000);
+}
 
 
 </script>
