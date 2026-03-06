@@ -30,19 +30,13 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: var(--bg);
-      color: var(--text-main);
+      background: var(--bg); color: var(--text-main);
       font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       min-height: 100vh;
     }
-
-    /* ヘッダー */
     .header {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      padding: 14px 20px;
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: var(--shadow);
+      background: var(--card-bg); border-bottom: 1px solid var(--border-color);
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
     }
     .header-inner {
       max-width: 900px; margin: 0 auto;
@@ -50,13 +44,9 @@
     }
     .header-title { font-size: 18px; font-weight: 700; }
     .header-actions { display: flex; gap: 8px; align-items: center; }
-
-    /* タブ */
     .tab-bar {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      display: flex; overflow-x: auto;
-      max-width: 900px; margin: 0 auto;
+      background: var(--card-bg); border-bottom: 1px solid var(--border-color);
+      display: flex; overflow-x: auto; max-width: 900px; margin: 0 auto;
     }
     .tab-btn {
       flex: 1; padding: 14px 8px; border: none; background: none;
@@ -66,12 +56,8 @@
     }
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
     .tab-btn:hover { color: var(--text-sub); }
-
     .tab-panel { display: none; max-width: 900px; margin: 0 auto; padding: 20px 16px; }
     .tab-panel.active { display: block; }
-
-    /* 共通 */
-    .container { max-width: 900px; margin: 0 auto; }
     .section-label {
       font-size: 13px; font-weight: 700; color: var(--text-sub);
       margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
@@ -81,16 +67,6 @@
       border-radius: 10px; min-width: 22px; text-align: center;
     }
     .badge-primary { background: var(--primary); color: #fff; }
-    .badge-success { background: var(--success); color: #fff; }
-
-    /* カード */
-    .card {
-      background: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: var(--radius); padding: 18px;
-      box-shadow: var(--shadow); margin-bottom: 14px;
-    }
-
-    /* ボタン */
     .btn {
       padding: 8px 16px; border: none; border-radius: var(--radius-sm);
       cursor: pointer; font-weight: 600; font-family: inherit;
@@ -109,8 +85,6 @@
     .btn-ghost:hover { background: var(--border-color); }
     .btn-lg { padding: 12px 20px; font-size: 15px; font-weight: 700; width: 100%; justify-content: center; }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
-
-    /* フォーム */
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 6px; }
     .form-input, .form-select, .form-textarea {
@@ -118,24 +92,15 @@
       border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
       color: var(--text-main); background: #fff; transition: border-color 0.15s;
     }
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      outline: none; border-color: var(--primary);
-    }
-    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-
-    /* 注文カード（オーダータブ） */
     .order-card {
       background: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: var(--radius); margin-bottom: 14px; padding: 18px;
-      box-shadow: var(--shadow); border-left: 4px solid var(--primary);
-      transition: all 0.3s;
+      box-shadow: var(--shadow); border-left: 4px solid var(--primary); transition: all 0.3s;
     }
     .new-order-flash { animation: flash 1.5s ease-out; }
-    @keyframes flash {
-      0% { background: var(--primary-light); } 100% { background: var(--card-bg); }
-    }
+    @keyframes flash { 0% { background: var(--primary-light); } 100% { background: var(--card-bg); } }
     .order-table-badge {
       font-size: 13px; font-weight: 700; background: var(--primary);
       color: #fff; padding: 4px 10px; border-radius: 6px;
@@ -171,8 +136,6 @@
       font-size: 12px; font-weight: 600; color: var(--success);
       background: var(--success-light); padding: 3px 10px; border-radius: 6px;
     }
-
-    /* メニュー管理 */
     .menu-item-card {
       background: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
@@ -184,7 +147,6 @@
     .menu-item-meta { font-size: 12px; color: var(--text-sub); display: flex; gap: 12px; flex-wrap: wrap; }
     .menu-item-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
     .sold-out-label { font-size: 12px; font-weight: 600; }
-
     .form-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .form-switch input { opacity: 0; width: 0; height: 0; }
     .form-switch .slider {
@@ -198,13 +160,10 @@
     }
     .form-switch input:checked + .slider { background: var(--danger); }
     .form-switch input:checked + .slider:before { transform: translateX(20px); }
-
-    /* モーダル */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.4); z-index: 1000;
-      justify-content: center; align-items: center;
-      backdrop-filter: blur(4px);
+      justify-content: center; align-items: center; backdrop-filter: blur(4px);
     }
     .modal-overlay.show { display: flex; }
     .modal-box {
@@ -217,13 +176,11 @@
       align-items: center; margin-bottom: 20px;
     }
     .modal-title { font-size: 16px; font-weight: 700; }
-
     .sound-indicator { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
     .sound-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
     .sound-dot.on { background: var(--success); }
     .spin { animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-
     .toast-msg {
       position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
       background: #1e293b; color: #fff; padding: 10px 24px;
@@ -231,6 +188,17 @@
       z-index: 2000; opacity: 1; transition: opacity 0.3s;
     }
     .toast-msg.out { opacity: 0; }
+    .image-upload-area {
+      display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .image-preview {
+      width: 120px; height: 120px; border-radius: 8px;
+      border: 1px solid var(--border-color); overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--border-light);
+    }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .image-actions { display: flex; flex-direction: column; gap: 8px; }
   </style>
 </head>
 <body>
@@ -339,8 +307,21 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">画像URL</label>
-        <input class="form-input" id="mf-image" placeholder="Google Drive URL など">
+        <label class="form-label">商品画像</label>
+        <div class="image-upload-area">
+          <div class="image-preview" id="mf-image-preview">
+            <span style="font-size:32px; color:var(--text-muted);">📷</span>
+          </div>
+          <div class="image-actions">
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+              📷 画像を選択
+              <input type="file" accept="image/*" id="mf-image-file" onchange="previewImage(this)" style="display:none;">
+            </label>
+            <button type="button" class="btn btn-ghost btn-sm" id="mf-image-delete-btn" style="color:var(--danger); display:none;" onclick="removeImage()">🗑 画像を削除</button>
+            <div id="mf-upload-status" style="font-size:12px; color:var(--text-muted);"></div>
+          </div>
+        </div>
+        <input type="hidden" id="mf-image" value="">
       </div>
 
       <div class="form-group">
@@ -371,9 +352,6 @@
 
 <script src="config.js"></script>
 <script>
-// ============================================================
-// グローバル
-// ============================================================
 var currentTab = "orders";
 var previousOrderIds = new Set();
 var isSoundOn = false;
@@ -384,21 +362,17 @@ var deleteTargetId = "";
 var orderInterval = null;
 
 window.onload = function() {
-  if (typeof GAS_API_URL === 'undefined') { alert("config.js error"); return; }
+  if (typeof GAS_API_URL === "undefined") { alert("config.js error"); return; }
   loadOrders();
   orderInterval = setInterval(function() { if (currentTab === "orders") loadOrders(false); }, 15000);
 };
 
-// ============================================================
-// タブ切り替え
-// ============================================================
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
   document.querySelectorAll(".tab-panel").forEach(function(p) { p.classList.remove("active"); });
   document.querySelector('.tab-btn[onclick*="' + tab + '"]').classList.add("active");
   document.getElementById("panel-" + tab).classList.add("active");
-
   if (tab === "menu") loadMenuList();
   if (tab === "orders") loadOrders(true);
 }
@@ -408,21 +382,14 @@ function refreshCurrentTab() {
   if (currentTab === "menu") loadMenuList();
 }
 
-// ============================================================
-// トースト
-// ============================================================
 function showToast(msg) {
   var el = document.createElement("div");
-  el.className = "toast-msg";
-  el.textContent = msg;
+  el.className = "toast-msg"; el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(function() { el.classList.add("out"); }, 1800);
   setTimeout(function() { el.remove(); }, 2200);
 }
 
-// ============================================================
-// 通知音
-// ============================================================
 function toggleSound() {
   isSoundOn = !isSoundOn;
   var btn = document.getElementById("btn-sound");
@@ -458,7 +425,6 @@ function displayOrders(orders) {
   var currentIds = new Set(orders.map(function(o) { return o.id; }));
   var hasNew = false;
   countBadge.textContent = orders.length;
-
   if (!orders.length) {
     container.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">未提供の注文はありません</div></div>';
   } else {
@@ -467,14 +433,14 @@ function displayOrders(orders) {
       var isNew = !previousOrderIds.has(order.id) && !isFirstLoad;
       if (isNew) hasNew = true;
       var flashClass = isNew ? " new-order-flash" : "";
-      var itemsHtml = order.items.map(function(item) { return '<div class="order-item-row">' + item + '</div>'; }).join("");
+      var itemsHtml = order.items.map(function(item) { return '<div class="order-item-row">' + item + "</div>"; }).join("");
       html += '<div class="order-card' + flashClass + '" id="ocard-' + order.id + '">' +
-        '<div style="margin-bottom:12px;"><span class="order-table-badge">Table ' + order.tableId + '</span>' +
-        '<span class="order-time">' + order.time + '</span>' +
-        (isNew ? '<span class="new-badge">NEW</span>' : '') +
-        '<div class="order-user">' + order.user + ' 様</div></div>' +
-        '<div class="order-items">' + itemsHtml + '</div>' +
-        '<button class="btn btn-success btn-lg" onclick="completeOrder(\'' + order.id + '\',\'' + order.user + '\')">✅ 提供完了</button></div>';
+        '<div style="margin-bottom:12px;"><span class="order-table-badge">Table ' + order.tableId + "</span>" +
+        '<span class="order-time">' + order.time + "</span>" +
+        (isNew ? '<span class="new-badge">NEW</span>' : "") +
+        '<div class="order-user">' + order.user + " 様</div></div>" +
+        '<div class="order-items">' + itemsHtml + "</div>" +
+        '<button class="btn btn-success btn-lg" onclick="completeOrder(\'' + order.id + "','" + order.user + "')\">" + "✅ 提供完了</button></div>";
     });
     container.innerHTML = html;
   }
@@ -513,7 +479,8 @@ function addDoneHistory(user) {
   if (list.querySelector("div[style]")) list.innerHTML = "";
   var now = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
   list.insertAdjacentHTML("afterbegin",
-    '<div class="history-card"><span class="history-info">' + now + ' — ' + user + ' 様</span><span class="history-badge">✅ 完了</span></div>');
+    '<div class="history-card"><span class="history-info">' + now + " — " + user + " 様</span>" +
+    '<span class="history-badge">✅ 完了</span></div>');
 }
 
 // ============================================================
@@ -522,13 +489,9 @@ function addDoneHistory(user) {
 function loadMenuList() {
   var container = document.getElementById("menu-list");
   container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">読み込み中...</div></div>';
-
   fetch(GAS_API_URL + "?action=getMenu")
     .then(function(r) { return r.json(); })
-    .then(function(items) {
-      allMenuData = items;
-      renderMenuList(items);
-    })
+    .then(function(items) { allMenuData = items; renderMenuList(items); })
     .catch(function() { container.innerHTML = '<div class="empty-state"><div class="empty-text">読み込みに失敗しました</div></div>'; });
 }
 
@@ -540,22 +503,22 @@ function renderMenuList(items) {
   }
   var html = "";
   items.forEach(function(item) {
-    var soldLabel = item.isSoldOut ? '<span class="sold-out-label" style="color:var(--danger);">売切</span>' : '<span class="sold-out-label" style="color:var(--success);">販売中</span>';
+    var soldLabel = item.isSoldOut
+      ? '<span class="sold-out-label" style="color:var(--danger);">売切</span>'
+      : '<span class="sold-out-label" style="color:var(--success);">販売中</span>';
     var ch = item.isSoldOut ? "checked" : "";
     html += '<div class="menu-item-card">' +
       '<div class="menu-item-info">' +
-      '<div class="menu-item-name">' + item.name + '</div>' +
+      '<div class="menu-item-name">' + item.name + "</div>" +
       '<div class="menu-item-meta">' +
-      '<span>ID: ' + item.id + '</span>' +
-      '<span>¥' + Number(item.price).toLocaleString() + '</span>' +
-      '<span>' + item.category + '</span>' +
-      '</div></div>' +
-      '<div class="menu-item-actions">' +
-      soldLabel +
-      '<label class="form-switch"><input type="checkbox" ' + ch + ' onchange="toggleStock(\'' + item.id + '\', this)"><span class="slider"></span></label>' +
-      '<button class="btn btn-outline btn-sm" onclick="openEditForm(\'' + item.id + '\')">編集</button>' +
-      '<button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="openDeleteConfirm(\'' + item.id + '\',\'' + item.name.replace(/'/g, "\\'") + '\')">🗑</button>' +
-      '</div></div>';
+      "<span>ID: " + item.id + "</span>" +
+      "<span>¥" + Number(item.price).toLocaleString() + "</span>" +
+      "<span>" + item.category + "</span>" +
+      "</div></div>" +
+      '<div class="menu-item-actions">' + soldLabel +
+      '<label class="form-switch"><input type="checkbox" ' + ch + ' onchange="toggleStock(\'' + item.id + "', this)\"><span class=\"slider\"></span></label>" +
+      '<button class="btn btn-outline btn-sm" onclick="openEditForm(\'' + item.id + "')\">" + "編集</button>" +
+      '<button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="openDeleteConfirm(\'' + item.id + "','" + item.name.replace(/'/g, "\\'") + "')\">" + "🗑</button></div></div>";
   });
   container.innerHTML = html;
 }
@@ -574,7 +537,7 @@ function toggleStock(id, checkbox) {
   });
 }
 
-// メニューフォーム
+// メニューフォーム：新規追加
 function openMenuForm() {
   document.getElementById("menu-form-title").textContent = "メニュー追加";
   document.getElementById("mf-mode").value = "add";
@@ -587,9 +550,14 @@ function openMenuForm() {
   document.getElementById("mf-bitter").value = "0";
   document.getElementById("mf-rich").value = "0";
   document.getElementById("mf-id").readOnly = false;
+  document.getElementById("mf-image").value = "";
+  document.getElementById("mf-image-preview").innerHTML = '<span style="font-size:32px; color:var(--text-muted);">📷</span>';
+  document.getElementById("mf-image-delete-btn").style.display = "none";
+  document.getElementById("mf-upload-status").textContent = "";
   document.getElementById("menuFormModal").classList.add("show");
 }
 
+// メニューフォーム：編集
 function openEditForm(itemId) {
   var item = allMenuData.find(function(i) { return i.id === itemId; });
   if (!item) return;
@@ -611,6 +579,21 @@ function openEditForm(itemId) {
   document.getElementById("mf-pairing").value = item.pairing || "";
   document.getElementById("mf-image").value = item.image || "";
   document.getElementById("mf-options").value = item.optionsStr || "";
+
+  var preview = document.getElementById("mf-image-preview");
+  var deleteBtn = document.getElementById("mf-image-delete-btn");
+  var status = document.getElementById("mf-upload-status");
+  if (item.image) {
+    preview.innerHTML = '<img src="' + item.image + '">';
+    deleteBtn.style.display = "inline-flex";
+    status.innerHTML = "✅ 画像設定済み";
+    status.style.color = "var(--success)";
+  } else {
+    preview.innerHTML = '<span style="font-size:32px; color:var(--text-muted);">📷</span>';
+    deleteBtn.style.display = "none";
+    status.textContent = "";
+  }
+
   document.getElementById("menuFormModal").classList.add("show");
 }
 
@@ -618,13 +601,95 @@ function closeMenuForm() {
   document.getElementById("menuFormModal").classList.remove("show");
 }
 
+// 画像プレビュー＆アップロード
+function previewImage(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("画像は5MB以下にしてください");
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById("mf-image-preview").innerHTML = '<img src="' + e.target.result + '">';
+    document.getElementById("mf-upload-status").textContent = "アップロード中...";
+    document.getElementById("mf-upload-status").style.color = "var(--text-muted)";
+    uploadImage(e.target.result, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadImage(base64Data, fileName) {
+  var status = document.getElementById("mf-upload-status");
+  var deleteBtn = document.getElementById("mf-image-delete-btn");
+  fetch(GAS_API_URL, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "uploadImage", fileData: base64Data, fileName: fileName })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === "success" && d.url) {
+        document.getElementById("mf-image").value = d.url;
+        status.innerHTML = "✅ アップロード完了";
+        status.style.color = "var(--success)";
+        deleteBtn.style.display = "inline-flex";
+      } else {
+        status.textContent = "❌ 失敗: " + (d.message || "");
+        status.style.color = "var(--danger)";
+      }
+    })
+    .catch(function() {
+      status.textContent = "❌ 通信エラー";
+      status.style.color = "var(--danger)";
+    });
+}
+
+// 画像削除
+function removeImage() {
+  var imageUrl = document.getElementById("mf-image").value;
+  var status = document.getElementById("mf-upload-status");
+  var deleteBtn = document.getElementById("mf-image-delete-btn");
+  var preview = document.getElementById("mf-image-preview");
+
+  if (!imageUrl) return;
+
+  status.textContent = "削除中...";
+  status.style.color = "var(--text-muted)";
+
+  fetch(GAS_API_URL, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "deleteImage", imageUrl: imageUrl })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById("mf-image").value = "";
+      preview.innerHTML = '<span style="font-size:32px; color:var(--text-muted);">📷</span>';
+      deleteBtn.style.display = "none";
+      if (d.status === "success") {
+        status.innerHTML = "✅ 画像を削除しました";
+        status.style.color = "var(--success)";
+      } else {
+        status.textContent = "URLをクリアしました（Storage削除失敗）";
+        status.style.color = "var(--warning)";
+      }
+    })
+    .catch(function() {
+      document.getElementById("mf-image").value = "";
+      preview.innerHTML = '<span style="font-size:32px; color:var(--text-muted);">📷</span>';
+      deleteBtn.style.display = "none";
+      status.textContent = "URLをクリアしました";
+      status.style.color = "var(--text-muted)";
+    });
+}
+
+// メニュー保存
 function saveMenuItem(e) {
   e.preventDefault();
   var mode = document.getElementById("mf-mode").value;
   var payload = {
     action: mode === "edit" ? "updateMenuItem" : "addMenuItem",
     item: {
-      item_id: document.getElementById("mf-id").value.trim(),
+      item_id: mode === "edit" ? document.getElementById("mf-original-id").value : document.getElementById("mf-id").value.trim(),
       item_name: document.getElementById("mf-name").value.trim(),
       price: Number(document.getElementById("mf-price").value),
       category: document.getElementById("mf-category").value.trim(),
@@ -642,8 +707,6 @@ function saveMenuItem(e) {
       is_soldout: false
     }
   };
-  if (mode === "edit") payload.item.item_id = document.getElementById("mf-original-id").value;
-
   fetch(GAS_API_URL, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -652,24 +715,20 @@ function saveMenuItem(e) {
       showToast(mode === "edit" ? "更新しました" : "追加しました");
       closeMenuForm();
       loadMenuList();
-    } else {
-      showToast("エラー: " + (d.message || ""));
-    }
+    } else { showToast("エラー: " + (d.message || "")); }
   }).catch(function() { showToast("通信エラー"); });
 }
 
-// 削除
+// メニュー削除
 function openDeleteConfirm(id, name) {
   deleteTargetId = id;
   document.getElementById("delete-item-name").textContent = name;
   document.getElementById("deleteConfirmModal").classList.add("show");
 }
-
 function closeDeleteConfirm() {
   document.getElementById("deleteConfirmModal").classList.remove("show");
   deleteTargetId = "";
 }
-
 function confirmDelete() {
   if (!deleteTargetId) return;
   fetch(GAS_API_URL, {
@@ -677,9 +736,7 @@ function confirmDelete() {
     body: JSON.stringify({ action: "deleteMenuItem", itemId: deleteTargetId })
   }).then(function(r) { return r.json(); }).then(function(d) {
     if (d.status === "success") {
-      showToast("削除しました");
-      closeDeleteConfirm();
-      loadMenuList();
+      showToast("削除しました"); closeDeleteConfirm(); loadMenuList();
     } else { showToast("エラー: " + (d.message || "")); }
   }).catch(function() { showToast("通信エラー"); });
 }
