@@ -343,7 +343,7 @@ function submitOrder() {
   });
 
   var prevLevel = getLevel(totalOrderCount);
-  var newOrderCount = totalOrderCount + cart.length;
+  var newOrderCount = totalOrderCount + orderItems.length;
 
   var accessToken = "";
   var userId = "";
@@ -368,7 +368,16 @@ function submitOrder() {
     items: orderItems
   };
 
-  // ★★★ headers を指定しない → プリフライト回避 ★★★
+  // ★ ローディング表示 & ボタン無効化
+  var orderBtn = document.querySelector("#cart-footer .btn-primary");
+  if (orderBtn) {
+    orderBtn.disabled = true;
+    orderBtn.dataset.originalText = orderBtn.textContent;
+    orderBtn.textContent = "注文送信中...";
+    orderBtn.style.opacity = "0.6";
+  }
+  showOrderLoading(true);
+
   fetch(GAS_API_URL, {
     method: "POST",
     body: JSON.stringify(payload)
@@ -381,6 +390,8 @@ function submitOrder() {
         d = JSON.parse(text);
       } catch (e) {
         showToast("サーバーエラーが発生しました");
+        resetOrderBtn(orderBtn);
+        showOrderLoading(false);
         return;
       }
 
@@ -390,6 +401,7 @@ function submitOrder() {
         updateCartBadge();
         closeModal("cartModal");
         historyCache = null;
+        showOrderLoading(false);
 
         var afterLevel = getLevel(totalOrderCount);
         if (afterLevel.lv > prevLevel.lv) {
@@ -403,13 +415,47 @@ function submitOrder() {
         }
       } else {
         showToast("注文失敗: " + (d.message || ""));
+        resetOrderBtn(orderBtn);
+        showOrderLoading(false);
       }
     })
     .catch(function(err) {
       console.error("通信エラー:", err);
       showToast("通信エラーが発生しました");
+      resetOrderBtn(orderBtn);
+      showOrderLoading(false);
     });
 }
+
+// 注文ボタンを元に戻す
+function resetOrderBtn(btn) {
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.originalText || "注文する";
+    btn.style.opacity = "1";
+  }
+}
+
+// ローディングオーバーレイ表示/非表示
+function showOrderLoading(show) {
+  var overlay = document.getElementById("order-loading-overlay");
+  if (show) {
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "order-loading-overlay";
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(255,255,255,0.85);z-index:1500;display:flex;flex-direction:column;justify-content:center;align-items:center;";
+      overlay.innerHTML = '<div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'
+        + '<p style="margin-top:16px;color:#6b7280;font-size:14px;font-weight:600;">注文を送信しています...</p>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = "flex";
+  } else {
+    if (overlay) {
+      overlay.style.display = "none";
+    }
+  }
+}
+
 
 
 
@@ -449,21 +495,25 @@ function renderMyTaste() {
 
   if (!userId) return;
 
-  if (historyCache) {
-    renderHistoryInTaste(historyCache);
-    var tasteData = calculateTasteData(historyCache);
-    renderTasteChart(tasteData);
-  } else {
-    preloadHistoryData(userId);
-    setTimeout(function() {
+  // 毎回最新を取得する（キャッシュに頼らない）
+  fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      historyCache = d;
+      renderHistoryInTaste(d);
+      var tasteData = calculateTasteData(d);
+      renderTasteChart(tasteData);
+    })
+    .catch(function(e) {
+      console.error("履歴取得エラー:", e);
       if (historyCache) {
         renderHistoryInTaste(historyCache);
         var tasteData = calculateTasteData(historyCache);
         renderTasteChart(tasteData);
       }
-    }, 2000);
-  }
+    });
 }
+
 
 function renderLevelDisplay() {
   var cur = getLevel(totalOrderCount);
