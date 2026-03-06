@@ -841,6 +841,7 @@ function openSommelierRec() {
 
   fetch(GAS_API_URL, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action: "getAiRecommendation",
       userId: userId,
@@ -849,16 +850,19 @@ function openSommelierRec() {
   })
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      console.log("AI応答:", d);
       if (d.status === "success" && d.recommendations && d.recommendations.length > 0) {
         renderRecResults(d.recommendations, d.comment || "");
       } else {
         renderRecFallback();
       }
     })
-    .catch(function() {
+    .catch(function(err) {
+      console.error("AI error:", err);
       renderRecFallback();
     });
 }
+
 
 function renderRecResults(recs, comment) {
   var html = '<div class="rec-analysis"><div class="ra-label">あなたの味覚傾向から分析しました</div><div class="ra-text">' + comment + '</div></div>';
@@ -952,6 +956,7 @@ function fetchConsultResult() {
 
   fetch(GAS_API_URL, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action: "getConsultResult",
       userId: userId,
@@ -961,13 +966,15 @@ function fetchConsultResult() {
   })
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      console.log("相談AI応答:", d);
       if (d.status === "success" && d.recommendation) {
         renderConsultResult(d.recommendation, d.comment || "");
       } else {
         renderConsultFallback();
       }
     })
-    .catch(function() {
+    .catch(function(err) {
+      console.error("Consult error:", err);
       renderConsultFallback();
     });
 }
@@ -1043,6 +1050,7 @@ function generateTasteImage() {
 
   fetch(GAS_API_URL, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "saveShareImage", imageData: base64 })
   })
     .then(function(r) { return r.json(); })
