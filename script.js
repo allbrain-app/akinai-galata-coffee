@@ -12,7 +12,6 @@ var myTasteCache = null;
 var totalOrderCount = 0;
 var currentScreen = "menu";
 
-
 // レベル定義
 var LEVELS = [
   { lv: 1, name: "ビギナー", icon: "🌱", req: 1, reqLabel: "初回注文", sommelier: "基本モード", shopBenefit: "—", color: "#9ca3af", bg: "#f9fafb" },
@@ -84,6 +83,36 @@ function showToast(msg) {
 }
 
 // ============================================================
+// ローディングオーバーレイ（注文送信中）
+// ============================================================
+function showOrderLoading(show) {
+  var overlay = document.getElementById("order-loading-overlay");
+  if (show) {
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "order-loading-overlay";
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(255,255,255,0.85);z-index:1500;display:flex;flex-direction:column;justify-content:center;align-items:center;";
+      overlay.innerHTML = '<div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'
+        + '<p style="margin-top:16px;color:#6b7280;font-size:14px;font-weight:600;">注文を送信しています...</p>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = "flex";
+  } else {
+    if (overlay) {
+      overlay.style.display = "none";
+    }
+  }
+}
+
+function resetOrderBtn(btn) {
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.originalText || "注文する";
+    btn.style.opacity = "1";
+  }
+}
+
+// ============================================================
 // 初期化
 // ============================================================
 function initializeLiff() {
@@ -129,8 +158,14 @@ function fetchInitData(userId, displayName) {
       document.getElementById("menu-items").style.display = "grid";
       document.getElementById("loading-overlay").style.display = "none";
 
-      if (d.profile && d.profile.orderCount) {
-        totalOrderCount = d.profile.orderCount;
+      if (d.profile && d.profile.orderCount !== undefined) {
+        totalOrderCount = Number(d.profile.orderCount) || 0;
+        console.log("初期オーダー数:", totalOrderCount);
+      }
+
+      // 履歴も事前取得
+      if (userId) {
+        preloadHistoryData(userId, true);
       }
     })
     .catch(function(err) {
@@ -378,6 +413,7 @@ function submitOrder() {
   }
   showOrderLoading(true);
 
+  // ★ headers無し（CORSプリフライト回避）
   fetch(GAS_API_URL, {
     method: "POST",
     body: JSON.stringify(payload)
@@ -410,8 +446,9 @@ function submitOrder() {
           openModal("completeModal");
         }
 
+        // 履歴を再取得
         if (userId) {
-          preloadHistoryData(userId);
+          preloadHistoryData(userId, true);
         }
       } else {
         showToast("注文失敗: " + (d.message || ""));
@@ -426,40 +463,6 @@ function submitOrder() {
       showOrderLoading(false);
     });
 }
-
-// 注文ボタンを元に戻す
-function resetOrderBtn(btn) {
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = btn.dataset.originalText || "注文する";
-    btn.style.opacity = "1";
-  }
-}
-
-// ローディングオーバーレイ表示/非表示
-function showOrderLoading(show) {
-  var overlay = document.getElementById("order-loading-overlay");
-  if (show) {
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.id = "order-loading-overlay";
-      overlay.style.cssText = "position:fixed;inset:0;background:rgba(255,255,255,0.85);z-index:1500;display:flex;flex-direction:column;justify-content:center;align-items:center;";
-      overlay.innerHTML = '<div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'
-        + '<p style="margin-top:16px;color:#6b7280;font-size:14px;font-weight:600;">注文を送信しています...</p>';
-      document.body.appendChild(overlay);
-    }
-    overlay.style.display = "flex";
-  } else {
-    if (overlay) {
-      overlay.style.display = "none";
-    }
-  }
-}
-
-
-
-
-
 
 // ============================================================
 // レベルアップ演出
@@ -495,7 +498,7 @@ function renderMyTaste() {
 
   if (!userId) return;
 
-  // 毎回最新を取得する（キャッシュに頼らない）
+  // 毎回最新を取得する
   fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId))
     .then(function(r) { return r.json(); })
     .then(function(d) {
@@ -513,7 +516,6 @@ function renderMyTaste() {
       }
     });
 }
-
 
 function renderLevelDisplay() {
   var cur = getLevel(totalOrderCount);
@@ -569,14 +571,31 @@ function toggleLevelList() {
 
 function renderHistoryInTaste(data) {
   var container = document.getElementById("history-items");
-  if (!data || data.length === 0) {
+
+  // 配列でない場合の対応（旧形式互換）
+  var items = [];
+  if (Array.isArray(data)) {
+    items = data;
+  } else if (data && Array.isArray(data.current)) {
+    items = data.current.concat(
+      data.past ? data.past.reduce(function(acc, order) {
+        return acc.concat(order.items || []);
+      }, []) : []
+    );
+  }
+
+  if (items.length === 0) {
     container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">注文履歴はありません</p>';
     return;
   }
+
   var html = "";
-  data.forEach(function(item) {
-    html += '<div class="history-item"><div><div class="h-name">' + item.itemName + '</div><div class="h-date">' + item.timestamp + '</div></div>' +
-      '<span class="h-price">¥' + item.price + '</span></div>';
+  items.forEach(function(item) {
+    var name = item.itemName || item.name || "不明";
+    var price = item.price || 0;
+    var time = item.timestamp || item.time || "";
+    html += '<div class="history-item"><div><div class="h-name">' + name + '</div><div class="h-date">' + time + '</div></div>' +
+      '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
   });
   container.innerHTML = html;
 }
@@ -584,20 +603,35 @@ function renderHistoryInTaste(data) {
 // ============================================================
 // 味覚チャート
 // ============================================================
-function calculateTasteData(history) {
+function calculateTasteData(data) {
   var totals = { salty: 0, sweet: 0, sour: 0, bitter: 0, rich: 0 };
   var count = 0;
-  history.forEach(function(h) {
-    var item = allMenuItems.find(function(m) { return m.name === h.itemName; });
-    if (item) {
-      totals.salty += Number(item.salty) || 0;
-      totals.sweet += Number(item.sweet) || 0;
-      totals.sour += Number(item.sour) || 0;
-      totals.bitter += Number(item.bitter) || 0;
-      totals.rich += Number(item.rich) || 0;
+
+  // 配列でない場合の対応（旧形式互換）
+  var items = [];
+  if (Array.isArray(data)) {
+    items = data;
+  } else if (data && Array.isArray(data.current)) {
+    items = data.current.concat(
+      data.past ? data.past.reduce(function(acc, order) {
+        return acc.concat(order.items || []);
+      }, []) : []
+    );
+  }
+
+  items.forEach(function(h) {
+    var name = h.itemName || h.name || "";
+    var item = allMenuItems.find(function(m) { return m.name === name; });
+    if (item && item.params) {
+      totals.salty += Number(item.params.salty) || 0;
+      totals.sweet += Number(item.params.sweet) || 0;
+      totals.sour += Number(item.params.sour) || 0;
+      totals.bitter += Number(item.params.bitter) || 0;
+      totals.rich += Number(item.params.rich) || 0;
       count++;
     }
   });
+
   if (count > 0) {
     totals.salty = Math.round(totals.salty / count * 10) / 10;
     totals.sweet = Math.round(totals.sweet / count * 10) / 10;
@@ -639,8 +673,8 @@ function renderTasteChart(data) {
 // ============================================================
 // 注文履歴
 // ============================================================
-function preloadHistoryData(userId) {
-  if (historyCache) return;
+function preloadHistoryData(userId, forceRefresh) {
+  if (historyCache && !forceRefresh) return;
   fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId))
     .then(function(r) { return r.json(); })
     .then(function(d) { historyCache = d; })
@@ -665,7 +699,6 @@ function openSommelierRec() {
 
   fetch(GAS_API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action: "getAiRecommendation",
       userId: userId,
@@ -674,7 +707,7 @@ function openSommelierRec() {
   })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      if (d.status === "success" && d.recommendations) {
+      if (d.status === "success" && d.recommendations && d.recommendations.length > 0) {
         renderRecResults(d.recommendations, d.comment || "");
       } else {
         renderRecFallback();
@@ -704,7 +737,7 @@ function renderRecResults(recs, comment) {
 }
 
 function renderRecFallback() {
-  var popular = allMenuItems.slice(0, 3);
+  var popular = allMenuItems.filter(function(i) { return !i.isSoldOut; }).slice(0, 3);
   var recs = popular.map(function(item) {
     return { name: item.name, price: item.price, emoji: item.emoji || "🍽", reason: "人気メニュー", match: null };
   });
@@ -775,7 +808,6 @@ function fetchConsultResult() {
 
   fetch(GAS_API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action: "getConsultResult",
       userId: userId,
@@ -808,7 +840,8 @@ function renderConsultResult(rec, comment) {
 }
 
 function renderConsultFallback() {
-  var item = allMenuItems[Math.floor(Math.random() * allMenuItems.length)] || { name: "おすすめドリンク", price: 800, emoji: "🍹" };
+  var available = allMenuItems.filter(function(i) { return !i.isSoldOut; });
+  var item = available[Math.floor(Math.random() * available.length)] || { name: "おすすめドリンク", price: 800, emoji: "🍹" };
   renderConsultResult(
     { name: item.name, price: item.price, emoji: item.emoji || "🍽", reason: "今日の気分にぴったりです" },
     "あなたの気分と味覚データを組み合わせて分析しました。"
@@ -866,13 +899,12 @@ function generateTasteImage() {
 
   fetch(GAS_API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "saveShareImage", imageData: base64 })
   })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       document.getElementById("share-loading").style.display = "none";
-      if (d.status === "success") {
+      if (d.status === "success" && d.url) {
         document.getElementById("share-result").style.display = "block";
         document.getElementById("share-preview-img").src = d.url;
         document.getElementById("share-direct-link").href = d.url;
