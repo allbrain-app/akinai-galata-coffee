@@ -251,6 +251,7 @@
   <button class="tab-btn active" onclick="switchTab('orders')">📋 オーダー</button>
   <button class="tab-btn" onclick="switchTab('menu')">📝 メニュー管理</button>
   <button class="tab-btn" onclick="switchTab('customers')">👥 顧客管理</button>
+  <button class="tab-btn" onclick="switchTab('settings')">⚙️ 設定</button>
 </div>
 
 <!-- ======== オーダータブ ======== -->
@@ -288,6 +289,15 @@
     <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">読み込み中...</div></div>
   </div>
 </div>
+
+
+<!-- ======== 設定タブ ======== -->
+<div class="tab-panel" id="panel-settings">
+  <div id="settings-content">
+    <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">読み込み中...</div></div>
+  </div>
+</div>
+
 
 <!-- ======== メニュー編集モーダル ======== -->
 <div class="modal-overlay" id="menuFormModal">
@@ -473,12 +483,14 @@ function switchTab(tab) {
   if (tab === "menu") loadMenuList();
   if (tab === "orders") loadOrders(true);
   if (tab === "customers") loadCustomers();
+  if (tab === "settings") loadSettings();
 }
 
 function refreshCurrentTab() {
   if (currentTab === "orders") loadOrders(true);
   if (currentTab === "menu") loadMenuList();
   if (currentTab === "customers") loadCustomers();
+  if (currentTab === "settings") loadSettings();
 }
 
 function showToast(msg) {
@@ -991,6 +1003,153 @@ function saveCustomerInfo() {
       showToast("通信エラー");
     });
 }
+
+// ============================================================
+// 設定タブ
+// ============================================================
+var settingsData = { configs: [], prompts: [] };
+
+function loadSettings() {
+  var container = document.getElementById("settings-content");
+  container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">読み込み中...</div></div>';
+  fetch(GAS_API_URL, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getSettings" })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === "success") {
+        settingsData = d;
+        renderSettings(d.configs, d.prompts);
+      } else {
+        container.innerHTML = '<div class="empty-state"><div class="empty-text">読み込みに失敗しました: ' + (d.message || "") + '</div></div>';
+      }
+    })
+    .catch(function(e) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-text">通信エラー</div></div>';
+      console.error("loadSettings error:", e);
+    });
+}
+
+function renderSettings(configs, prompts) {
+  var container = document.getElementById("settings-content");
+
+  var configLabels = {
+    "GEMINI_MODEL": { label: "AIモデル", desc: "使用するGeminiモデル名" },
+    "VIP_COUNT_THRESHOLD": { label: "VIP来店回数", desc: "この回数以上でVIP判定" },
+    "VIP_DAYS_THRESHOLD": { label: "VIP判定日数", desc: "最終来店からこの日数以内" },
+    "REPLY_TEXT_DEFAULT": { label: "デフォルト応答", desc: "該当キーワードなし時の返信" },
+    "REPLY_TEXT_RESERVE": { label: "予約キーワード応答", desc: "" },
+    "REPLY_TEXT_ACCESS": { label: "アクセスキーワード応答", desc: "" },
+    "REPLY_TEXT_HOURS": { label: "営業時間キーワード応答", desc: "" },
+    "REPLY_KEYWORD_RESERVE": { label: "予約キーワード", desc: "カンマ区切り" },
+    "REPLY_KEYWORD_ACCESS": { label: "アクセスキーワード", desc: "カンマ区切り" },
+    "REPLY_KEYWORD_HOURS": { label: "営業時間キーワード", desc: "カンマ区切り" }
+  };
+
+  var html = '';
+
+  // AI設定セクション
+  html += '<div class="section-label" style="margin-top:0;">🤖 AI設定</div>';
+  html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:20px; margin-bottom:20px; box-shadow:var(--shadow);">';
+  configs.forEach(function(c) {
+    if (c.key === "GEMINI_MODEL" || c.key === "VIP_COUNT_THRESHOLD" || c.key === "VIP_DAYS_THRESHOLD") {
+      var info = configLabels[c.key] || { label: c.key, desc: "" };
+      html += '<div class="form-group">';
+      html += '<label class="form-label">' + info.label + (info.desc ? ' <span style="font-weight:400; color:var(--text-muted);">(' + info.desc + ')</span>' : '') + '</label>';
+      html += '<input class="form-input" id="cfg-' + c.key + '" value="' + escHtml(c.value) + '">';
+      html += '</div>';
+    }
+  });
+  html += '</div>';
+
+  // LINE応答設定セクション
+  html += '<div class="section-label">💬 LINE応答設定</div>';
+  html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:20px; margin-bottom:20px; box-shadow:var(--shadow);">';
+  var lineKeys = ["REPLY_TEXT_DEFAULT", "REPLY_KEYWORD_RESERVE", "REPLY_TEXT_RESERVE", "REPLY_KEYWORD_ACCESS", "REPLY_TEXT_ACCESS", "REPLY_KEYWORD_HOURS", "REPLY_TEXT_HOURS"];
+  lineKeys.forEach(function(key) {
+    var c = configs.find(function(x) { return x.key === key; });
+    if (!c) return;
+    var info = configLabels[key] || { label: key, desc: "" };
+    html += '<div class="form-group">';
+    html += '<label class="form-label">' + info.label + (info.desc ? ' <span style="font-weight:400; color:var(--text-muted);">(' + info.desc + ')</span>' : '') + '</label>';
+    html += '<input class="form-input" id="cfg-' + key + '" value="' + escHtml(c.value) + '">';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // AIプロンプトセクション
+  html += '<div class="section-label">📝 AIプロンプト</div>';
+  prompts.forEach(function(p) {
+    html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:20px; margin-bottom:12px; box-shadow:var(--shadow);">';
+    html += '<div class="form-group" style="margin-bottom:8px;">';
+    html += '<label class="form-label">' + escHtml(p.name || p.id) + ' <span style="font-weight:400; color:var(--text-muted);">(id: ' + p.id + ')</span></label>';
+    html += '<textarea class="form-input" id="prompt-' + p.id + '" rows="4" style="resize:vertical;">' + escHtml(p.content || "") + '</textarea>';
+    html += '</div></div>';
+  });
+
+  // 保存ボタン
+  html += '<div style="margin-top:20px; margin-bottom:40px;">';
+  html += '<button class="btn btn-primary btn-lg" onclick="saveAllSettings()" id="settings-save-btn">💾 すべて保存</button>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function escHtml(str) {
+  return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function saveAllSettings() {
+  var btn = document.getElementById("settings-save-btn");
+  btn.textContent = "保存中...";
+  btn.disabled = true;
+
+  var changedConfigs = [];
+  settingsData.configs.forEach(function(c) {
+    var el = document.getElementById("cfg-" + c.key);
+    if (el && el.value !== c.value) {
+      changedConfigs.push({ key: c.key, value: el.value });
+    }
+  });
+
+  var changedPrompts = [];
+  settingsData.prompts.forEach(function(p) {
+    var el = document.getElementById("prompt-" + p.id);
+    if (el && el.value !== p.content) {
+      changedPrompts.push({ id: p.id, content: el.value });
+    }
+  });
+
+  if (changedConfigs.length === 0 && changedPrompts.length === 0) {
+    btn.textContent = "💾 すべて保存";
+    btn.disabled = false;
+    showToast("変更はありません");
+    return;
+  }
+
+  fetch(GAS_API_URL, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "saveSettings", configs: changedConfigs, prompts: changedPrompts })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.textContent = "💾 すべて保存";
+      btn.disabled = false;
+      if (d.status === "success") {
+        showToast("保存しました（" + (changedConfigs.length + changedPrompts.length) + "件）");
+        loadSettings();
+      } else { showToast("エラー: " + (d.message || "")); }
+    })
+    .catch(function() {
+      btn.textContent = "💾 すべて保存";
+      btn.disabled = false;
+      showToast("通信エラー");
+    });
+}
+
+
+
 </script>
 </body>
 </html>
