@@ -11,6 +11,7 @@ var currentOptionItem = null;
 var myTasteCache = null;
 var totalOrderCount = 0;
 var currentScreen = "menu";
+var currentUserId = "";
 
 // レベル定義
 var LEVELS = [
@@ -133,6 +134,7 @@ function initializeLiff() {
       return;
     }
     liff.getProfile().then(function(p) {
+      currentUserId = p.userId;
       fetchInitData(p.userId, p.displayName);
       checkTableId();
     });
@@ -163,7 +165,7 @@ function fetchInitData(userId, displayName) {
         console.log("初期オーダー数:", totalOrderCount);
       }
 
-      // 履歴も事前取得
+      // 最新5件だけ事前取得
       if (userId) {
         preloadHistoryData(userId, true);
       }
@@ -403,7 +405,6 @@ function submitOrder() {
     items: orderItems
   };
 
-  // ★ ローディング表示 & ボタン無効化
   var orderBtn = document.querySelector("#cart-footer .btn-primary");
   if (orderBtn) {
     orderBtn.disabled = true;
@@ -413,7 +414,6 @@ function submitOrder() {
   }
   showOrderLoading(true);
 
-  // ★ headers無し（CORSプリフライト回避）
   fetch(GAS_API_URL, {
     method: "POST",
     body: JSON.stringify(payload)
@@ -446,7 +446,6 @@ function submitOrder() {
           openModal("completeModal");
         }
 
-        // 履歴を再取得
         if (userId) {
           preloadHistoryData(userId, true);
         }
@@ -490,16 +489,18 @@ function renderMyTaste() {
   renderLevelDisplay();
   renderLevelList();
 
-  var userId = "";
-  try {
-    var profile = liff.getDecodedIDToken();
-    if (profile) userId = profile.sub || "";
-  } catch (e) {}
+  var userId = currentUserId;
+  if (!userId) {
+    try {
+      var profile = liff.getDecodedIDToken();
+      if (profile) userId = profile.sub || "";
+    } catch (e) {}
+  }
 
   if (!userId) return;
 
-  // 毎回最新を取得する
-  fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId))
+  // 最新5件だけ取得（軽量）
+  fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId) + "&limit=5")
     .then(function(r) { return r.json(); })
     .then(function(d) {
       historyCache = d;
@@ -569,10 +570,12 @@ function toggleLevelList() {
   arrow.classList.toggle("open");
 }
 
+// ============================================================
+// 注文履歴描画（最新5件 + 月別もっと見る）
+// ============================================================
 function renderHistoryInTaste(data) {
   var container = document.getElementById("history-items");
 
-  // 配列でない場合の対応（旧形式互換）
   var items = [];
   if (Array.isArray(data)) {
     items = data;
@@ -589,12 +592,10 @@ function renderHistoryInTaste(data) {
     return;
   }
 
-  var SHOW_COUNT = 5;
   var html = "";
 
-  // 上位5件
-  var visibleItems = items.slice(0, SHOW_COUNT);
-  visibleItems.forEach(function(item) {
+  // 最新5件を表示
+  items.forEach(function(item) {
     var name = item.itemName || item.name || "不明";
     var price = item.price || 0;
     var time = item.timestamp || item.time || "";
@@ -602,50 +603,149 @@ function renderHistoryInTaste(data) {
       '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
   });
 
-  // 残りがあればプルダウン
-  if (items.length > SHOW_COUNT) {
-    var remaining = items.slice(SHOW_COUNT);
-
-    html += '<div id="history-more-wrap">';
-    html += '<button id="history-toggle-btn" onclick="toggleHistoryMore()" style="'
-      + 'width:100%;padding:12px;margin-top:8px;background:#f9fafb;border:1px solid #e5e7eb;'
-      + 'border-radius:10px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;'
-      + 'display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">'
-      + '過去の注文をもっと見る（' + remaining.length + '件）'
-      + '<span id="history-arrow" style="font-size:11px;transition:transform 0.3s;">▼</span>'
-      + '</button>';
-
-    html += '<div id="history-more-list" style="display:none;">';
-    remaining.forEach(function(item) {
-      var name = item.itemName || item.name || "不明";
-      var price = item.price || 0;
-      var time = item.timestamp || item.time || "";
-      html += '<div class="history-item"><div><div class="h-name">' + name + '</div><div class="h-date">' + time + '</div></div>' +
-        '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
-    });
-    html += '</div></div>';
-  }
+  // 「過去の注文をもっと見る」ボタン
+  html += '<div id="history-more-section">';
+  html += '<button id="history-more-btn" onclick="loadHistoryMonths()" style="'
+    + 'width:100%;padding:14px;margin-top:12px;background:#f9fafb;border:1px solid #e5e7eb;'
+    + 'border-radius:12px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;'
+    + 'display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;'
+    + 'transition:all 0.2s;">'
+    + '📅 過去の注文をもっと見る'
+    + '</button>';
+  html += '<div id="history-month-selector" style="display:none;"></div>';
+  html += '<div id="history-month-items" style="display:none;"></div>';
+  html += '</div>';
 
   container.innerHTML = html;
 }
 
-function toggleHistoryMore() {
-  var list = document.getElementById("history-more-list");
-  var arrow = document.getElementById("history-arrow");
-  var btn = document.getElementById("history-toggle-btn");
-
-  if (list.style.display === "none") {
-    list.style.display = "block";
-    arrow.style.transform = "rotate(180deg)";
-    btn.querySelector("span").previousSibling.textContent = "閉じる ";
-  } else {
-    list.style.display = "none";
-    arrow.style.transform = "rotate(0deg)";
-    var count = list.querySelectorAll(".history-item").length;
-    btn.querySelector("span").previousSibling.textContent = "過去の注文をもっと見る（" + count + "件） ";
+// 月一覧を取得して表示
+function loadHistoryMonths() {
+  var userId = currentUserId;
+  if (!userId) {
+    try {
+      var profile = liff.getDecodedIDToken();
+      if (profile) userId = profile.sub || "";
+    } catch (e) {}
   }
+  if (!userId) return;
+
+  var btn = document.getElementById("history-more-btn");
+  btn.textContent = "読み込み中...";
+  btn.style.opacity = "0.6";
+
+  fetch(GAS_API_URL + "?action=getHistoryMonths&userId=" + encodeURIComponent(userId))
+    .then(function(r) { return r.json(); })
+    .then(function(months) {
+      btn.style.display = "none";
+
+      var selector = document.getElementById("history-month-selector");
+
+      if (!months || months.length === 0) {
+        selector.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:12px 0;font-size:13px;">過去の注文はありません</p>';
+        selector.style.display = "block";
+        return;
+      }
+
+      var html = '<div style="font-size:13px;font-weight:700;color:#374151;margin:16px 0 10px;">何月の注文を見ますか？</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+      months.forEach(function(m) {
+        var parts = m.month.split("-");
+        var label = Number(parts[0]) + "年" + Number(parts[1]) + "月";
+        html += '<button onclick="loadMonthHistory(\'' + m.month + '\')" style="'
+          + 'padding:10px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;'
+          + 'font-size:13px;font-weight:600;color:#374151;cursor:pointer;font-family:inherit;'
+          + 'transition:all 0.15s;">'
+          + label + ' <span style="color:#9ca3af;font-weight:400;">(' + m.count + '件)</span>'
+          + '</button>';
+      });
+      html += '</div>';
+
+      // 「閉じる」ボタン
+      html += '<button onclick="closeHistoryMonths()" style="'
+        + 'width:100%;padding:10px;margin-top:10px;background:none;border:none;'
+        + 'font-size:13px;color:#9ca3af;cursor:pointer;font-family:inherit;">'
+        + '▲ 閉じる</button>';
+
+      selector.innerHTML = html;
+      selector.style.display = "block";
+    })
+    .catch(function(e) {
+      console.error("月一覧取得エラー:", e);
+      btn.textContent = "📅 過去の注文をもっと見る";
+      btn.style.opacity = "1";
+      showToast("読み込みに失敗しました");
+    });
 }
 
+// 月別履歴の「閉じる」
+function closeHistoryMonths() {
+  document.getElementById("history-month-selector").style.display = "none";
+  document.getElementById("history-month-items").style.display = "none";
+
+  var btn = document.getElementById("history-more-btn");
+  btn.style.display = "flex";
+  btn.textContent = "📅 過去の注文をもっと見る";
+  btn.style.opacity = "1";
+}
+
+// 指定月の履歴を取得
+function loadMonthHistory(month) {
+  var userId = currentUserId;
+  if (!userId) {
+    try {
+      var profile = liff.getDecodedIDToken();
+      if (profile) userId = profile.sub || "";
+    } catch (e) {}
+  }
+  if (!userId) return;
+
+  var itemsContainer = document.getElementById("history-month-items");
+  itemsContainer.innerHTML = '<div style="text-align:center;padding:20px 0;"><div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  itemsContainer.style.display = "block";
+
+  // 選択された月をハイライト
+  var buttons = document.querySelectorAll("#history-month-selector button");
+  buttons.forEach(function(b) {
+    if (b.onclick && b.getAttribute("onclick") && b.getAttribute("onclick").indexOf(month) >= 0) {
+      b.style.background = "#3b82f6";
+      b.style.color = "#fff";
+      b.style.borderColor = "#3b82f6";
+    } else if (b.getAttribute("onclick") && b.getAttribute("onclick").indexOf("loadMonthHistory") >= 0) {
+      b.style.background = "#fff";
+      b.style.color = "#374151";
+      b.style.borderColor = "#e5e7eb";
+    }
+  });
+
+  fetch(GAS_API_URL + "?action=getHistoryByMonth&userId=" + encodeURIComponent(userId) + "&month=" + encodeURIComponent(month))
+    .then(function(r) { return r.json(); })
+    .then(function(items) {
+      if (!items || items.length === 0) {
+        itemsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:12px 0;font-size:13px;">この月の注文はありません</p>';
+        return;
+      }
+
+      var parts = month.split("-");
+      var label = Number(parts[0]) + "年" + Number(parts[1]) + "月";
+      var html = '<div style="font-size:13px;font-weight:700;color:#374151;margin:12px 0 8px;padding-top:12px;border-top:1px solid #e5e7eb;">'
+        + '📋 ' + label + 'の注文（' + items.length + '件）</div>';
+
+      items.forEach(function(item) {
+        var name = item.itemName || item.name || "不明";
+        var price = item.price || 0;
+        var time = item.timestamp || item.time || "";
+        html += '<div class="history-item"><div><div class="h-name">' + name + '</div><div class="h-date">' + time + '</div></div>' +
+          '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
+      });
+
+      itemsContainer.innerHTML = html;
+    })
+    .catch(function(e) {
+      console.error("月別履歴取得エラー:", e);
+      itemsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:12px 0;">読み込みに失敗しました</p>';
+    });
+}
 
 // ============================================================
 // 味覚チャート
@@ -654,7 +754,6 @@ function calculateTasteData(data) {
   var totals = { salty: 0, sweet: 0, sour: 0, bitter: 0, rich: 0 };
   var count = 0;
 
-  // 配列でない場合の対応（旧形式互換）
   var items = [];
   if (Array.isArray(data)) {
     items = data;
@@ -707,6 +806,8 @@ function renderTasteChart(data) {
       }]
     },
     options: {
+      maintainAspectRatio: true,
+      aspectRatio: 1,
       scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } },
       plugins: { legend: { display: false } }
     }
@@ -718,11 +819,11 @@ function renderTasteChart(data) {
 }
 
 // ============================================================
-// 注文履歴
+// 注文履歴プリロード（最新5件）
 // ============================================================
 function preloadHistoryData(userId, forceRefresh) {
   if (historyCache && !forceRefresh) return;
-  fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId))
+  fetch(GAS_API_URL + "?action=getHistory&userId=" + encodeURIComponent(userId) + "&limit=5")
     .then(function(r) { return r.json(); })
     .then(function(d) { historyCache = d; })
     .catch(function(e) { console.error("History preload error:", e); });
@@ -736,11 +837,13 @@ function openSommelierRec() {
   container.innerHTML = '<div style="text-align:center;"><div style="font-size:13px; color:var(--text-sub); margin-bottom:12px;">味覚データを分析中</div><div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
   openModal("recModal");
 
-  var userId = "";
-  try {
-    var profile = liff.getDecodedIDToken();
-    if (profile) userId = profile.sub || "";
-  } catch (e) {}
+  var userId = currentUserId;
+  if (!userId) {
+    try {
+      var profile = liff.getDecodedIDToken();
+      if (profile) userId = profile.sub || "";
+    } catch (e) {}
+  }
 
   var history = historyCache || [];
 
@@ -847,11 +950,13 @@ function fetchConsultResult() {
   var container = document.getElementById("consult-content");
   container.innerHTML = '<div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
 
-  var userId = "";
-  try {
-    var profile = liff.getDecodedIDToken();
-    if (profile) userId = profile.sub || "";
-  } catch (e) {}
+  var userId = currentUserId;
+  if (!userId) {
+    try {
+      var profile = liff.getDecodedIDToken();
+      if (profile) userId = profile.sub || "";
+    } catch (e) {}
+  }
 
   fetch(GAS_API_URL, {
     method: "POST",
