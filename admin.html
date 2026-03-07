@@ -482,8 +482,9 @@
       <div style="font-size:18px; font-weight:700;" id="ai-top-func">-</div>
     </div>
     <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:16px; text-align:center;">
-      <div style="font-size:12px; color:var(--text-muted);">推定コスト</div>
-      <div style="font-size:28px; font-weight:700; color:#e67e22;" id="ai-cost">-</div>
+      <div style="font-size:12px; color:var(--text-muted);">今月のAI配信数</div>
+      <div style="font-size:28px; font-weight:700; color:#e67e22;" id="ai-broadcasts">-</div>
+      <div style="font-size:11px; color:var(--text-muted);">通</div>
     </div>
   </div>
 
@@ -2096,9 +2097,8 @@ function renderAiUsage(d) {
   tokensEl.textContent = "前月比 " + (tokensDiff >= 0 ? "+" : "") + tokensDiff.toLocaleString();
   tokensEl.style.color = tokensDiff >= 0 ? "#27ae60" : "#e74c3c";
 
-  // 推定コスト（Gemini 2.5 Flash: 入力$0.15/1M, 出力$0.60/1M → 概算 $0.30/1M平均 → ¥45/1M）
-  var costYen = Math.ceil(d.totalTokens * 0.000045);
-  document.getElementById("ai-cost").textContent = "¥" + costYen.toLocaleString();
+  // 推定コストの行を削除して、以下に差し替え
+  document.getElementById("ai-broadcasts").textContent = (d.monthBroadcasts || 0).toLocaleString();
 
   // 機能別内訳（CSSバー）
   var funcEl = document.getElementById("ai-by-function");
