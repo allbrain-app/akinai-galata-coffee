@@ -252,45 +252,10 @@ function buildCategoryTabs() {
   container.innerHTML = html;
 }
 
-var previousCategory = "ALL";
-
 function filterCategory(cat) {
-  if (cat === currentCategory) return;
-
-  var categories = ["ALL", "Food", "Drink"];
-  var oldIndex = categories.indexOf(currentCategory);
-  var newIndex = categories.indexOf(cat);
-  var goingRight = newIndex > oldIndex;
-
-  var menuItems = document.getElementById("menu-items");
-
-  // フェーズ1: スライドアウト
-  menuItems.classList.add(goingRight ? "slide-out-left" : "slide-out-right");
-
-  setTimeout(function() {
-    currentCategory = cat;
-    buildCategoryTabs();
-    renderMenu();
-
-    // フェーズ2: 反対側に配置
-    menuItems.classList.remove("slide-out-left", "slide-out-right");
-    menuItems.classList.add("no-transition");
-    menuItems.style.transform = goingRight ? "translateX(40px)" : "translateX(-40px)";
-    menuItems.style.opacity = "0";
-
-    void menuItems.offsetWidth;
-
-    // フェーズ3: スライドイン
-    menuItems.classList.remove("no-transition");
-    menuItems.style.transform = "translateX(0)";
-    menuItems.style.opacity = "1";
-
-    // フェーズ4: アニメーション完了後にスタイルをクリア
-    setTimeout(function() {
-      menuItems.style.transform = "";
-      menuItems.style.opacity = "";
-    }, 300);
-  }, 200);
+  currentCategory = cat;
+  buildCategoryTabs();
+  renderMenu();
 }
 
 
