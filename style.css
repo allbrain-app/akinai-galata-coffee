@@ -1,19 +1,27 @@
 /* ========================================
-   茶飯事Bar MVP - style.css
+   モバイルオーダー - style.css
    ======================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --bg-body: #f9fafb;
+  --bg-body: #f8fafc;
   --bg-card: #ffffff;
-  --text-main: #111827;
-  --text-sub: #6b7280;
-  --text-muted: #9ca3af;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --text-muted: #94a3b8;
   --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
   --color-primary-light: #eff6ff;
   --color-primary-border: #bfdbfe;
   --color-danger: #ef4444;
-  --border-color: #e5e7eb;
-  --border-light: #f3f4f6;
+  --color-success: #22c55e;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --radius: 16px;
+  --radius-sm: 10px;
 }
 
 * { box-sizing: border-box; }
@@ -21,7 +29,7 @@
 body {
   background-color: var(--bg-body);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
   margin: 0;
   padding: 0;
   padding-bottom: 80px;
@@ -41,6 +49,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: var(--shadow);
 }
 
 .app-header .shop-name {
@@ -50,16 +59,19 @@ body {
 }
 
 .cart-btn {
-  background: #f3f4f6;
+  background: var(--border-light);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 8px 14px;
   font-size: 14px;
   cursor: pointer;
   position: relative;
   font-weight: 600;
   color: #374151;
+  transition: background 0.15s;
 }
+
+.cart-btn:active { background: var(--border-color); }
 
 .cart-badge {
   position: absolute;
@@ -92,6 +104,7 @@ body {
   border-top: 1px solid var(--border-color);
   display: flex;
   z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
 }
 
 .footer-tab {
@@ -130,21 +143,22 @@ body {
    ソムリエバナー（メニュー画面上部）
    ======================================== */
 .sommelier-banner {
-  margin: 12px 16px;
-  padding: 14px 18px;
-  background: linear-gradient(135deg, var(--color-primary-light), #dbeafe);
-  border-radius: 14px;
+  margin: 14px 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
   border: 1px solid var(--color-primary-border);
   transition: transform 0.15s;
+  box-shadow: var(--shadow);
 }
 
 .sommelier-banner:active { transform: scale(0.98); }
 .sommelier-banner .banner-title { font-size: 14px; font-weight: 700; color: #1e40af; }
-.sommelier-banner .banner-sub { font-size: 12px; color: var(--color-primary); margin-top: 2px; }
+.sommelier-banner .banner-sub { font-size: 12px; color: var(--color-primary); margin-top: 3px; }
 .sommelier-banner .banner-arrow { font-size: 20px; color: var(--color-primary); }
 
 /* ========================================
@@ -154,21 +168,21 @@ body {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 8px 16px 10px;
+  padding: 8px 16px 12px;
   -webkit-overflow-scrolling: touch;
 }
 
 .category-tabs::-webkit-scrollbar { display: none; }
 
 .cat-btn {
-  padding: 7px 16px;
+  padding: 8px 18px;
   border-radius: 20px;
   border: none;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  background: #f3f4f6;
+  background: var(--border-light);
   color: var(--text-sub);
   transition: all 0.2s;
   flex-shrink: 0;
@@ -178,6 +192,7 @@ body {
 .cat-btn.active {
   background: var(--color-primary);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.3);
 }
 
 /* ========================================
@@ -186,26 +201,27 @@ body {
 .menu-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 4px 16px 16px;
 }
 
 .menu-card {
   background: var(--bg-card);
-  border-radius: 14px;
+  border-radius: var(--radius);
   border: 1px solid var(--border-color);
   overflow: hidden;
   cursor: pointer;
-  transition: border 0.15s, transform 0.15s;
+  transition: border 0.15s, transform 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow);
 }
 
 .menu-card:active { transform: scale(0.96); }
-.menu-card.added { border: 2px solid var(--color-primary); transform: scale(0.96); }
+.menu-card.added { border: 2px solid var(--color-primary); transform: scale(0.96); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
 .menu-card.sold-out { opacity: 0.5; pointer-events: none; }
 
 .menu-card .card-img {
-  height: 100px;
-  background: #f9fafb;
+  height: 110px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,22 +244,24 @@ body {
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-.menu-card .card-body { padding: 10px 12px; }
-.menu-card .item-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
-.menu-card .item-price { font-size: 14px; font-weight: 700; color: var(--color-primary); margin-top: 4px; }
+.menu-card .card-body { padding: 12px 14px; }
+.menu-card .item-name { font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.4; }
+.menu-card .item-price { font-size: 15px; font-weight: 800; color: var(--color-primary); margin-top: 6px; }
+.menu-card .item-flavor { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3; }
 
 /* ========================================
    My Taste画面
    ======================================== */
 .taste-card {
   background: var(--bg-card);
-  border-radius: 16px;
+  border-radius: var(--radius);
   border: 1px solid var(--border-color);
   padding: 20px;
   margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 
 .level-display { text-align: center; }
@@ -259,9 +277,7 @@ body {
 
 .level-title { font-size: 13px; color: var(--text-sub); margin-top: 6px; }
 
-.progress-bar-container {
-  margin-top: 18px;
-}
+.progress-bar-container { margin-top: 18px; }
 
 .progress-info {
   display: flex;
@@ -286,9 +302,7 @@ body {
 }
 
 /* レベル一覧 */
-.level-list-toggle {
-  cursor: pointer;
-}
+.level-list-toggle { cursor: pointer; }
 
 .level-list-header {
   display: flex;
@@ -296,20 +310,9 @@ body {
   align-items: center;
 }
 
-.level-list-header h3 {
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.level-arrow {
-  font-size: 13px;
-  color: var(--text-muted);
-  transition: transform 0.3s;
-}
-
+.level-list-header h3 { font-size: 14px; font-weight: 700; margin: 0; }
+.level-arrow { font-size: 13px; color: var(--text-muted); transition: transform 0.3s; }
 .level-arrow.open { transform: rotate(180deg); }
-
 .level-list { display: none; margin-top: 14px; }
 .level-list.open { display: block; }
 
@@ -337,10 +340,8 @@ body {
 }
 
 .level-item-icon.current { animation: pulseGlow 2s ease infinite; }
-
 .level-item-name { font-size: 13px; font-weight: 700; }
 .level-item-req { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
 .level-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 
 .tag-sommelier {
@@ -385,8 +386,28 @@ body {
   height: auto !important;
 }
 
-
 .chart-caption { text-align: center; margin-top: 12px; font-size: 12px; color: var(--text-sub); }
+
+/* 期間選択プルダウン */
+.taste-period-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.taste-period-selector select {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-sub);
+  background: #fff;
+  cursor: pointer;
+}
+
+.taste-period-selector select:focus { outline: none; border-color: var(--color-primary); }
 
 /* シェアボタン */
 .share-btn {
@@ -394,7 +415,7 @@ body {
   padding: 14px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius);
   font-size: 14px;
   font-weight: 600;
   color: #374151;
@@ -405,7 +426,11 @@ body {
   justify-content: center;
   gap: 8px;
   font-family: inherit;
+  box-shadow: var(--shadow);
+  transition: background 0.15s;
 }
+
+.share-btn:active { background: var(--border-light); }
 
 /* 注文履歴 */
 .history-item {
@@ -424,27 +449,28 @@ body {
 /* ========================================
    ソムリエ画面
    ======================================== */
-.sommelier-hero { text-align: center; margin-bottom: 28px; padding-top: 20px; }
-.sommelier-hero .hero-icon { font-size: 52px; margin-bottom: 8px; }
+.sommelier-hero { text-align: center; margin-bottom: 28px; padding-top: 24px; }
+.sommelier-hero .hero-icon { font-size: 52px; margin-bottom: 10px; }
 .sommelier-hero h2 { font-size: 22px; font-weight: 800; margin: 0; }
-.sommelier-hero p { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+.sommelier-hero p { font-size: 13px; color: var(--text-sub); margin-top: 6px; }
 
 .sommelier-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 24px 20px;
   margin: 0 16px 16px;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow);
 }
 
 .sommelier-card:active { transform: scale(0.98); }
-
+.sommelier-card:hover { box-shadow: var(--shadow-md); }
 .sommelier-card .sc-inner { display: flex; align-items: center; gap: 14px; }
 .sommelier-card .sc-icon { font-size: 32px; }
 .sommelier-card .sc-title { font-size: 16px; font-weight: 700; }
-.sommelier-card .sc-desc { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+.sommelier-card .sc-desc { font-size: 13px; color: var(--text-sub); margin-top: 4px; line-height: 1.5; }
 
 /* ========================================
    モーダル共通
@@ -457,6 +483,7 @@ body {
   display: none;
   align-items: flex-end;
   justify-content: center;
+  backdrop-filter: blur(2px);
 }
 
 .modal-backdrop.center { align-items: center; }
@@ -475,11 +502,12 @@ body {
 
 .modal-center-box {
   background: #fff;
-  border-radius: 20px;
+  border-radius: var(--radius);
   width: 85%;
   max-width: 380px;
   padding: 32px 24px;
   animation: scaleIn 0.25s ease;
+  box-shadow: var(--shadow-md);
 }
 
 .modal-header {
@@ -492,13 +520,22 @@ body {
 .modal-header h3 { font-size: 17px; font-weight: 800; margin: 0; }
 
 .modal-close {
-  background: none;
+  background: var(--border-light);
   border: none;
-  font-size: 22px;
+  font-size: 18px;
   cursor: pointer;
   color: var(--text-muted);
   font-family: inherit;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
 }
+
+.modal-close:hover { background: var(--border-color); }
 
 /* カートモーダル */
 .cart-item {
@@ -521,7 +558,10 @@ body {
   cursor: pointer;
   color: var(--color-danger);
   font-family: inherit;
+  transition: background 0.15s;
 }
+
+.cart-remove:active { background: #fef2f2; }
 
 .cart-total-row {
   display: flex;
@@ -541,12 +581,15 @@ body {
   background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  transition: background 0.15s;
 }
+
+.btn-primary:active { background: var(--color-primary-dark); }
 
 .btn-cart-add {
   width: 100%;
@@ -554,12 +597,15 @@ body {
   background: var(--color-primary-light);
   color: #1d4ed8;
   border: 1px solid var(--color-primary-border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  transition: background 0.15s;
 }
+
+.btn-cart-add:active { background: #dbeafe; }
 
 .btn-ghost {
   width: 100%;
@@ -574,34 +620,35 @@ body {
 
 /* ソムリエおすすめ */
 .rec-analysis {
-  background: #f0f9ff;
-  border-radius: 12px;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-sm);
   padding: 16px;
   margin-bottom: 16px;
 }
 
-.rec-analysis .ra-label { font-size: 13px; color: #0369a1; margin-bottom: 6px; }
+.rec-analysis .ra-label { font-size: 13px; color: #0369a1; margin-bottom: 6px; font-weight: 600; }
 .rec-analysis .ra-text { font-size: 14px; color: var(--text-main); line-height: 1.7; }
 
 .rec-card {
   background: #fff;
   border: 1px solid var(--border-light);
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: var(--radius);
+  padding: 16px;
   margin-bottom: 10px;
+  box-shadow: var(--shadow);
 }
 
 .rec-card .rc-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .rec-card .rc-emoji { font-size: 32px; }
 .rec-card .rc-name { font-size: 14px; font-weight: 700; }
 .rec-card .rc-match { background: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
-.rec-card .rc-reason { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-.rec-card .rc-price { font-size: 14px; font-weight: 700; color: var(--color-primary); margin-top: 4px; }
+.rec-card .rc-reason { font-size: 12px; color: var(--text-sub); margin-top: 2px; line-height: 1.5; }
+.rec-card .rc-price { font-size: 14px; font-weight: 700; color: var(--color-primary); margin-top: 6px; }
 
 /* ソムリエ相談 */
 .consult-bubble {
-  background: #f9fafb;
-  border-radius: 16px;
+  background: var(--border-light);
+  border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 20px;
 }
@@ -617,16 +664,16 @@ body {
   padding: 14px 12px;
   background: #fff;
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 600;
   color: #374151;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.consult-opt:active { border-color: var(--color-primary); }
+.consult-opt:active { border-color: var(--color-primary); background: var(--color-primary-light); }
 
 .consult-progress { display: flex; justify-content: center; gap: 6px; margin-top: 16px; }
 
@@ -646,13 +693,13 @@ body {
   gap: 14px;
   padding: 16px;
   background: #fffbeb;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid #fde68a;
 }
 
 .consult-result .cr-emoji { font-size: 40px; }
 .consult-result .cr-name { font-size: 16px; font-weight: 700; }
-.consult-result .cr-desc { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+.consult-result .cr-desc { font-size: 13px; color: var(--text-sub); margin-top: 2px; line-height: 1.5; }
 .consult-result .cr-price { font-size: 15px; font-weight: 700; color: var(--color-primary); margin-top: 6px; }
 
 /* ドットアニメーション（分析中） */
@@ -677,7 +724,7 @@ body {
 
 .taste-update-link {
   background: linear-gradient(135deg, var(--color-primary-light), #dbeafe);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 14px 16px;
   margin-bottom: 16px;
   cursor: pointer;
@@ -709,12 +756,13 @@ body {
   width: 100%;
   padding: 12px;
   border: 2px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 24px;
   text-align: center;
   margin-bottom: 16px;
   font-family: inherit;
   outline: none;
+  transition: border-color 0.15s;
 }
 
 .table-input:focus { border-color: var(--color-primary); }
@@ -728,11 +776,11 @@ body {
   background: var(--text-main);
   color: #fff;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 600;
   z-index: 2000;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-md);
   white-space: nowrap;
   animation: toastIn 0.3s ease;
 }
@@ -763,10 +811,10 @@ body {
 #loading-overlay p { margin-top: 12px; color: var(--text-sub); font-size: 14px; }
 
 /* スケルトン */
-.skeleton-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--border-color); }
-.skeleton-img { height: 100px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+.skeleton-card { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-color); }
+.skeleton-img { height: 110px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
 .skeleton-text { height: 12px; background: #e5e7eb; border-radius: 6px; }
-.skeleton-card .card-body { padding: 10px 12px; }
+.skeleton-card .card-body { padding: 12px 14px; }
 
 /* ========================================
    アニメーション
