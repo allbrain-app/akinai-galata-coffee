@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>モバイルオーダー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
 
 <!-- ローディング -->
@@ -17,7 +21,7 @@
 
 <!-- ヘッダー -->
 <header class="app-header">
-  <span class="shop-name">☕ Your Shop</span>
+  <span class="shop-name"><span id="shop-icon">🍸</span> <span id="shop-name-text">BAR</span></span>
   <button class="cart-btn" onclick="openCart()">
     🛒
     <span id="cart-badge" class="cart-badge" style="display:none;">0</span>
