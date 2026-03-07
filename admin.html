@@ -359,6 +359,13 @@
 
 <!-- ======== 売上分析タブ ======== -->
 <div class="tab-panel" id="panel-sales">
+  <div style="display:flex; gap:8px; margin-bottom:16px; overflow-x:auto;">
+    <button class="segment-btn active" onclick="filterSalesPeriod('all')">全期間</button>
+    <button class="segment-btn" onclick="filterSalesPeriod('today')">今日</button>
+    <button class="segment-btn" onclick="filterSalesPeriod('7')">直近7日</button>
+    <button class="segment-btn" onclick="filterSalesPeriod('30')">直近30日</button>
+    <button class="segment-btn" onclick="filterSalesPeriod('90')">直近3ヶ月</button>
+  </div>
   <div id="sales-content">
     <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">読み込み中...</div></div>
   </div>
@@ -1312,19 +1319,24 @@ function saveAllSettings() {
 // ============================================================
 // 売上分析タブ
 // ============================================================
+var currentSalesPeriod = 'all';
+var salesRawData = null;
+
 function loadSales() {
   var container = document.getElementById("sales-content");
   container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">読み込み中...</div></div>';
   fetch(GAS_API_URL, {
-    method: "POST", headers: { "Content-Type": "application/json" },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "getSalesAnalysis" })
   })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.status === "success") {
-        renderSales(d);
+        salesRawData = d;
+        renderFilteredSales();
       } else {
-        container.innerHTML = '<div class="empty-state"><div class="empty-text">読み込みに失敗しました: ' + (d.message || "") + '</div></div>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-text">読み込みに失敗しました</div></div>';
       }
     })
     .catch(function(e) {
@@ -1333,12 +1345,87 @@ function loadSales() {
     });
 }
 
+function filterSalesPeriod(period) {
+  currentSalesPeriod = period;
+
+  // ボタンのactive状態を更新
+  var panel = document.getElementById("panel-sales");
+  panel.querySelectorAll(".segment-btn").forEach(function(btn) {
+    btn.classList.remove("active");
+    if (btn.getAttribute("onclick").indexOf("'" + period + "'") >= 0) {
+      btn.classList.add("active");
+    }
+  });
+
+  if (salesRawData) {
+    renderFilteredSales();
+  }
+}
+
+function renderFilteredSales() {
+  if (!salesRawData) return;
+
+  var data = JSON.parse(JSON.stringify(salesRawData));
+  var now = new Date();
+  var cutoff = null;
+
+  if (currentSalesPeriod === 'today') {
+    var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    cutoff = new Date(todayStr);
+  } else if (currentSalesPeriod !== 'all') {
+    var days = Number(currentSalesPeriod);
+    cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  }
+
+  // 日別データをフィルタ
+  if (cutoff && data.daily) {
+    data.daily = data.daily.filter(function(d) {
+      return new Date(d.date) >= cutoff;
+    });
+  }
+
+  // 月別データをフィルタ
+  if (cutoff && data.monthly) {
+    var cutoffMonth = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0');
+    data.monthly = data.monthly.filter(function(m) {
+      return m.month >= cutoffMonth;
+    });
+  }
+
+  // ランキングをフィルタ期間で再計算（日別データから）
+  if (cutoff && data.daily) {
+    var filteredSales = 0;
+    var filteredOrders = 0;
+    data.daily.forEach(function(d) {
+      filteredSales += d.sales || 0;
+      filteredOrders += d.orders || 0;
+    });
+    data.today = {
+      sales: filteredSales,
+      orders: filteredOrders,
+      avg: filteredOrders > 0 ? Math.round(filteredSales / filteredOrders) : 0
+    };
+  }
+
+  // サマリーラベルを変更
+  var periodLabel = '本日';
+  if (currentSalesPeriod === 'all') periodLabel = '全期間';
+  else if (currentSalesPeriod === 'today') periodLabel = '本日';
+  else if (currentSalesPeriod === '7') periodLabel = '直近7日間';
+  else if (currentSalesPeriod === '30') periodLabel = '直近30日間';
+  else if (currentSalesPeriod === '90') periodLabel = '直近3ヶ月';
+
+  data._periodLabel = periodLabel;
+  renderSales(data);
+}
+
 function renderSales(data) {
   var container = document.getElementById("sales-content");
   var html = "";
 
   // 今日のサマリー
-  html += '<div class="section-label" style="margin-top:0;">📊 本日の売上</div>';
+  var periodLabel = data._periodLabel || '本日';
+  html += '<div class="section-label" style="margin-top:0;">📊 ' + periodLabel + 'の売上</div>';
   html += '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:24px;">';
   html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:16px; text-align:center; box-shadow:var(--shadow);">';
   html += '<div style="font-size:24px; font-weight:700; color:var(--primary);">¥' + Number(data.today.sales).toLocaleString() + '</div>';
