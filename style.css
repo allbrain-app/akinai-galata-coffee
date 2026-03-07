@@ -1,7 +1,45 @@
 /* ========================================
-   CSS Variables
+   Light Theme (default)
 ======================================== */
-:root {
+:root,
+[data-theme="light"] {
+  --primary: #d4a574;
+  --primary-dark: #b8895c;
+  --primary-light: rgba(212, 165, 116, 0.15);
+  --bg-main: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-surface: #f9fafb;
+  --bg-input: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-sub: #9ca3af;
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --header-bg: #ffffff;
+  --footer-bg: #ffffff;
+  --card-img-bg: #f3f4f6;
+  --modal-overlay: rgba(0,0,0,0.5);
+  --loading-bg: #ffffff;
+  --chart-grid: rgba(0,0,0,0.08);
+  --chart-label: #6b7280;
+  --chart-fill: rgba(212,165,116,0.15);
+  --chart-border: #d4a574;
+}
+
+/* ========================================
+   Dark Theme
+======================================== */
+[data-theme="dark"] {
   --primary: #d4a574;
   --primary-dark: #b8895c;
   --primary-light: rgba(212, 165, 116, 0.15);
@@ -12,7 +50,7 @@
   --text-primary: #f5f0eb;
   --text-secondary: #b0a898;
   --text-muted: #706a60;
-  --text-sub: #888;
+  --text-sub: #888888;
   --border-color: #333333;
   --border-light: #2a2a2a;
   --success: #4ade80;
@@ -24,6 +62,15 @@
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
+  --header-bg: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  --footer-bg: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  --card-img-bg: #222222;
+  --modal-overlay: rgba(0,0,0,0.7);
+  --loading-bg: #0a0a0a;
+  --chart-grid: rgba(255,255,255,0.1);
+  --chart-label: #b0a898;
+  --chart-fill: rgba(212,165,116,0.15);
+  --chart-border: #d4a574;
 }
 
 /* ========================================
@@ -43,6 +90,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* ========================================
@@ -51,7 +99,7 @@ body {
 #loading-overlay {
   position: fixed;
   inset: 0;
-  background: var(--bg-main);
+  background: var(--loading-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -86,12 +134,11 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  background: var(--header-bg);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(10px);
 }
 
 .shop-name {
@@ -143,7 +190,7 @@ body {
   align-items: center;
   padding: 6px 0;
   padding-bottom: calc(6px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  background: var(--footer-bg);
   border-top: 1px solid var(--border-color);
   position: fixed;
   bottom: 0;
@@ -206,7 +253,7 @@ body {
   justify-content: space-between;
   margin: 12px 16px;
   padding: 14px 18px;
-  background: linear-gradient(135deg, var(--bg-card), var(--bg-surface));
+  background: var(--bg-card);
   border: 1px solid var(--primary);
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -320,7 +367,7 @@ body {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  background: var(--bg-surface);
+  background: var(--card-img-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,7 +383,7 @@ body {
 .menu-card-img-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-input) 100%);
+  background: var(--card-img-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,7 +461,7 @@ body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-overlay);
   z-index: 200;
   display: none;
   justify-content: center;
@@ -624,7 +671,7 @@ body {
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--bg-surface);
+  background: var(--bg-card);
   color: var(--text-primary);
   padding: 12px 24px;
   border-radius: var(--radius);
@@ -881,7 +928,7 @@ body {
 
 .tag-shop {
   font-size: 11px;
-  background: rgba(74, 222, 128, 0.1);
+  background: rgba(34, 197, 94, 0.1);
   color: var(--success);
   padding: 2px 8px;
   border-radius: 6px;
