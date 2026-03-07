@@ -1405,3 +1405,25 @@ body {
   font-weight: 700;
   white-space: nowrap;
 }
+
+
+/* メニュースライドアニメーション */
+#menu-items {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+#menu-items.slide-out-left {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+#menu-items.slide-out-right {
+  transform: translateX(30px);
+  opacity: 0;
+}
+#menu-items.slide-in-left {
+  transform: translateX(30px);
+  opacity: 0;
+}
+#menu-items.slide-in-right {
+  transform: translateX(-30px);
+  opacity: 0;
+}
