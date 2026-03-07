@@ -92,9 +92,9 @@ function showOrderLoading(show) {
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.id = "order-loading-overlay";
-      overlay.style.cssText = "position:fixed;inset:0;background:rgba(255,255,255,0.85);z-index:1500;display:flex;flex-direction:column;justify-content:center;align-items:center;";
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1500;display:flex;flex-direction:column;justify-content:center;align-items:center;";
       overlay.innerHTML = '<div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'
-        + '<p style="margin-top:16px;color:#6b7280;font-size:14px;font-weight:600;">注文を送信しています...</p>';
+        + '<p style="margin-top:16px;color:var(--text-secondary);font-size:14px;font-weight:600;">注文を送信しています...</p>';
       document.body.appendChild(overlay);
     }
     overlay.style.display = "flex";
@@ -118,7 +118,7 @@ function resetOrderBtn(btn) {
 // ============================================================
 
 function initializeLiff() {
-  var APP_VERSION = "20260306a";
+  var APP_VERSION = "20260307a";
   var savedVer = localStorage.getItem("MO_APP_VERSION");
   if (savedVer !== APP_VERSION) {
     localStorage.removeItem("MO_MENU_CACHE");
@@ -134,6 +134,21 @@ function initializeLiff() {
       document.getElementById("menu-items").style.display = "grid";
     } catch (e) {}
   }
+
+  // 店舗名を動的に取得
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'getShopConfig' })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.status === 'success') {
+      var iconEl = document.getElementById('shop-icon');
+      var nameEl = document.getElementById('shop-name-text');
+      if (iconEl) iconEl.textContent = d.shopIcon || '🍸';
+      if (nameEl) nameEl.textContent = d.shopName || 'BAR';
+      document.title = d.shopName || 'モバイルオーダー';
+    }
+  }).catch(function(e) { console.warn('Shop config load failed:', e); });
 
   liff.init({ liffId: MY_LIFF_ID }).then(function() {
     if (!liff.isLoggedIn()) {
@@ -247,10 +262,14 @@ function renderMenu() {
   items.forEach(function(item) {
     var imgSrc = item.image ? convertDriveUrl(item.image) : "";
     var soldClass = item.isSoldOut ? " sold-out" : "";
-    var imgHtml = imgSrc
-      ? '<img src="' + imgSrc + '" alt="' + item.name + '">'
-      : '<span style="font-size:42px;">' + (item.emoji || '🍽') + '</span>';
     var soldBadge = item.isSoldOut ? '<span class="sold-out-badge">売切</span>' : '';
+
+    var imgHtml;
+    if (imgSrc) {
+      imgHtml = '<img src="' + imgSrc + '" alt="' + item.name + '" onerror="this.outerHTML=\'<div class=menu-card-img-placeholder style=font-size:42px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;>' + (item.emoji || '🍸') + '</div>\'">';
+    } else {
+      imgHtml = '<div class="menu-card-img-placeholder" style="font-size:42px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">' + (item.emoji || '🍸') + '</div>';
+    }
 
     html += '<div class="menu-card' + soldClass + '" id="card-' + item.id + '" onclick="addToCart(\'' + item.id + '\')">' +
       '<div class="card-img">' + imgHtml + soldBadge + '</div>' +
@@ -516,7 +535,7 @@ function renderMyTaste() {
         renderTastePeriodSelector();
       }
     });
-}   // ← この閉じ括弧があるか確認
+}
 
 
 function renderTastePeriodSelector() {
@@ -530,7 +549,7 @@ function renderTastePeriodSelector() {
 
   var select = document.createElement("select");
   select.id = "taste-period";
-  select.style.cssText = "padding:8px 16px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:#374151;cursor:pointer;";
+  select.style.cssText = "padding:8px 16px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg-input);color:var(--text-primary);cursor:pointer;";
   select.innerHTML =
     '<option value="all">今までの全期間の分析</option>' +
     '<option value="30">直近1ヶ月の分析</option>' +
@@ -668,8 +687,8 @@ function renderHistoryInTaste(data) {
   // 「過去の注文をもっと見る」ボタン
   html += '<div id="history-more-section">';
   html += '<button id="history-more-btn" onclick="loadHistoryMonths()" style="'
-    + 'width:100%;padding:14px;margin-top:12px;background:#f9fafb;border:1px solid #e5e7eb;'
-    + 'border-radius:12px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;'
+    + 'width:100%;padding:14px;margin-top:12px;background:var(--bg-card);border:1px solid var(--border-color);'
+    + 'border-radius:12px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;'
     + 'display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;'
     + 'transition:all 0.2s;">'
     + '📅 過去の注文をもっと見る'
@@ -709,16 +728,16 @@ function loadHistoryMonths() {
         return;
       }
 
-      var html = '<div style="font-size:13px;font-weight:700;color:#374151;margin:16px 0 10px;">何月の注文を見ますか？</div>';
+      var html = '<div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:16px 0 10px;">何月の注文を見ますか？</div>';
       html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
       months.forEach(function(m) {
         var parts = m.month.split("-");
         var label = Number(parts[0]) + "年" + Number(parts[1]) + "月";
         html += '<button onclick="loadMonthHistory(\'' + m.month + '\')" style="'
-          + 'padding:10px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;'
-          + 'font-size:13px;font-weight:600;color:#374151;cursor:pointer;font-family:inherit;'
+          + 'padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;'
+          + 'font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer;font-family:inherit;'
           + 'transition:all 0.15s;">'
-          + label + ' <span style="color:#9ca3af;font-weight:400;">(' + m.count + '件)</span>'
+          + label + ' <span style="color:var(--text-muted);font-weight:400;">(' + m.count + '件)</span>'
           + '</button>';
       });
       html += '</div>';
@@ -726,7 +745,7 @@ function loadHistoryMonths() {
       // 「閉じる」ボタン
       html += '<button onclick="closeHistoryMonths()" style="'
         + 'width:100%;padding:10px;margin-top:10px;background:none;border:none;'
-        + 'font-size:13px;color:#9ca3af;cursor:pointer;font-family:inherit;">'
+        + 'font-size:13px;color:var(--text-muted);cursor:pointer;font-family:inherit;">'
         + '▲ 閉じる</button>';
 
       selector.innerHTML = html;
@@ -770,13 +789,13 @@ function loadMonthHistory(month) {
   var buttons = document.querySelectorAll("#history-month-selector button");
   buttons.forEach(function(b) {
     if (b.onclick && b.getAttribute("onclick") && b.getAttribute("onclick").indexOf(month) >= 0) {
-      b.style.background = "#3b82f6";
-      b.style.color = "#fff";
-      b.style.borderColor = "#3b82f6";
+      b.style.background = "var(--primary)";
+      b.style.color = "#000";
+      b.style.borderColor = "var(--primary)";
     } else if (b.getAttribute("onclick") && b.getAttribute("onclick").indexOf("loadMonthHistory") >= 0) {
-      b.style.background = "#fff";
-      b.style.color = "#374151";
-      b.style.borderColor = "#e5e7eb";
+      b.style.background = "var(--bg-card)";
+      b.style.color = "var(--text-primary)";
+      b.style.borderColor = "var(--border-color)";
     }
   });
 
@@ -790,7 +809,7 @@ function loadMonthHistory(month) {
 
       var parts = month.split("-");
       var label = Number(parts[0]) + "年" + Number(parts[1]) + "月";
-      var html = '<div style="font-size:13px;font-weight:700;color:#374151;margin:12px 0 8px;padding-top:12px;border-top:1px solid #e5e7eb;">'
+      var html = '<div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:12px 0 8px;padding-top:12px;border-top:1px solid var(--border-color);">'
         + '📋 ' + label + 'の注文（' + items.length + '件）</div>';
 
       items.forEach(function(item) {
@@ -861,16 +880,24 @@ function renderTasteChart(data) {
       datasets: [{
         label: "My Taste",
         data: [data.salty, data.sweet, data.sour, data.bitter, data.rich],
-        backgroundColor: "rgba(59,130,246,0.15)",
-        borderColor: "#3b82f6",
+        backgroundColor: "rgba(212,165,116,0.15)",
+        borderColor: "var(--primary)",
         borderWidth: 2.5,
-        pointBackgroundColor: "#3b82f6"
+        pointBackgroundColor: "#d4a574"
       }]
     },
     options: {
       maintainAspectRatio: true,
       aspectRatio: 1,
-      scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 10,
+          ticks: { stepSize: 2, color: "var(--text-muted)" },
+          grid: { color: "rgba(255,255,255,0.1)" },
+          pointLabels: { color: "var(--text-secondary)", font: { size: 13 } }
+        }
+      },
       plugins: { legend: { display: false } }
     }
   });
@@ -896,7 +923,7 @@ function preloadHistoryData(userId, forceRefresh) {
 // ============================================================
 function openSommelierRec() {
   var container = document.getElementById("rec-content");
-  container.innerHTML = '<div style="text-align:center;"><div style="font-size:13px; color:var(--text-sub); margin-bottom:12px;">味覚データを分析中</div><div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  container.innerHTML = '<div style="text-align:center;"><div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">味覚データを分析中</div><div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
   openModal("recModal");
 
   var userId = currentUserId;
@@ -1092,17 +1119,20 @@ function generateTasteImage() {
   ctx.beginPath();
   ctx.arc(540, 700, 350, 0, Math.PI * 2);
   var glow = ctx.createRadialGradient(540, 700, 0, 540, 700, 350);
-  glow.addColorStop(0, "rgba(59,130,246,0.15)");
-  glow.addColorStop(1, "rgba(59,130,246,0)");
+  glow.addColorStop(0, "rgba(212,165,116,0.15)");
+  glow.addColorStop(1, "rgba(212,165,116,0)");
   ctx.fillStyle = glow;
   ctx.fill();
+
+  var shopNameText = document.getElementById("shop-name-text");
+  var shopName = shopNameText ? shopNameText.textContent : "BAR";
 
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = "36px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Your Shop", 540, 100);
+  ctx.fillText(shopName, 540, 100);
 
-  ctx.fillStyle = "#3b82f6";
+  ctx.fillStyle = "#d4a574";
   ctx.font = "bold 56px sans-serif";
   ctx.fillText("My Taste 診断結果", 540, 180);
 
