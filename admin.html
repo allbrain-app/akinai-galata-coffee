@@ -401,9 +401,9 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">テンプレート内容（プレビュー）</label>
-      <div id="bc-template-preview" style="background:var(--border-light); border-radius:var(--radius-sm); padding:14px; min-height:80px; font-size:13px; color:var(--text-sub); line-height:1.7;">
-        テンプレートを選択すると、ここにプレビューが表示されます
+      <label class="form-label">テンプレート原文</label>
+      <div id="bc-template-preview" style="background:var(--border-light); border-radius:var(--radius-sm); padding:14px; min-height:60px; font-size:13px; color:var(--text-sub); line-height:1.7;">
+        テンプレートを選択すると、ここに原文が表示されます
       </div>
     </div>
 
@@ -413,16 +413,34 @@
         <span class="form-label" style="margin-bottom:0;">🤖 AIでパーソナライズする</span>
       </label>
       <div style="font-size:11px; color:var(--text-muted); margin-top:4px; margin-left:26px;">
-        Gemini が顧客ごとに文面を最適化します（送信に少し時間がかかります）
+        Gemini が顧客情報をもとに文面を最適化します
       </div>
     </div>
+
+    <button class="btn btn-outline btn-lg" onclick="generatePreview()" id="bc-generate-btn" style="margin-bottom:16px;">
+      🤖 プレビューを作成
+    </button>
   </div>
 
-  <!-- プレビュー＆送信 -->
+  <!-- プレビュー＆送信（共通） -->
   <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:18px; margin-top:12px;">
-    <div class="section-label" style="margin-bottom:10px;">📱 送信プレビュー</div>
-    <div id="bc-preview" style="background:var(--border-light); border-radius:var(--radius-sm); padding:14px; min-height:60px; font-size:13px; line-height:1.7; white-space:pre-wrap; color:var(--text-sub);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div class="section-label" style="margin-bottom:0;">📱 送信メッセージ</div>
+      <span id="bc-preview-status" style="font-size:11px; color:var(--text-muted);"></span>
+    </div>
+
+    <!-- フリー入力モード時: 読み取り専用プレビュー -->
+    <div id="bc-preview-readonly" style="background:var(--border-light); border-radius:var(--radius-sm); padding:14px; min-height:60px; font-size:13px; line-height:1.7; white-space:pre-wrap; color:var(--text-sub);">
       メッセージを入力すると、ここにプレビューが表示されます
+    </div>
+
+    <!-- テンプレートモード時: 編集可能テキストエリア -->
+    <div id="bc-preview-editable-wrap" style="display:none;">
+      <textarea class="form-input" id="bc-preview-editable" rows="8" style="resize:vertical; line-height:1.7; font-size:13px;" placeholder="「プレビューを作成」ボタンを押すと、ここにAIが作成したメッセージが表示されます。手動で編集もできます。"></textarea>
+      <div style="display:flex; justify-content:space-between; margin-top:4px;">
+        <span style="font-size:11px; color:var(--text-muted);">✏️ 送信前に自由に編集できます</span>
+        <span style="font-size:11px; color:var(--text-muted);"><span id="bc-preview-char-count">0</span>/500文字</span>
+      </div>
     </div>
   </div>
 
@@ -431,15 +449,6 @@
       📣 配信する
     </button>
   </div>
-
-  <!-- 配信履歴 -->
-  <div style="margin-top:32px; padding-top:20px; border-top:1px solid var(--border-color);">
-    <div class="section-label">📜 配信履歴</div>
-    <div id="bc-history">
-      <div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px 0;">配信履歴はまだありません</div>
-    </div>
-  </div>
-</div>
 
 
 <!-- ======== 設定タブ ======== -->
@@ -1665,31 +1674,47 @@ function switchTheme(mode) {
 var bcCurrentSegment = "all";
 var bcCurrentMode = "manual";
 var bcTemplateCache = {};
+var bcPreviewReady = false; // テンプレートモード時、プレビュー作成済みか
 
-// 文字数カウント
+// 文字数カウント（フリー入力）
 (function() {
   var ta = document.getElementById("bc-message");
   if (ta) {
     ta.addEventListener("input", function() {
       var count = this.value.length;
       document.getElementById("bc-char-count").textContent = count;
-      var preview = document.getElementById("bc-preview");
+      var preview = document.getElementById("bc-preview-readonly");
       preview.textContent = this.value || "メッセージを入力すると、ここにプレビューが表示されます";
       preview.style.color = this.value ? "var(--text-main)" : "var(--text-sub)";
+    });
+  }
+  // 編集可能プレビューの文字数カウント
+  var ep = document.getElementById("bc-preview-editable");
+  if (ep) {
+    ep.addEventListener("input", function() {
+      document.getElementById("bc-preview-char-count").textContent = this.value.length;
     });
   }
 })();
 
 function switchBcMode(mode) {
   bcCurrentMode = mode;
+  bcPreviewReady = false;
   document.getElementById("bc-mode-manual").classList.toggle("active", mode === "manual");
   document.getElementById("bc-mode-template").classList.toggle("active", mode === "template");
   document.getElementById("bc-manual-form").style.display = mode === "manual" ? "block" : "none";
   document.getElementById("bc-template-form").style.display = mode === "template" ? "block" : "none";
 
-  var preview = document.getElementById("bc-preview");
-  preview.textContent = "メッセージを入力すると、ここにプレビューが表示されます";
-  preview.style.color = "var(--text-sub)";
+  // プレビュー表示切替
+  document.getElementById("bc-preview-readonly").style.display = mode === "manual" ? "block" : "none";
+  document.getElementById("bc-preview-editable-wrap").style.display = mode === "template" ? "block" : "none";
+
+  // リセット
+  document.getElementById("bc-preview-readonly").textContent = "メッセージを入力すると、ここにプレビューが表示されます";
+  document.getElementById("bc-preview-readonly").style.color = "var(--text-sub)";
+  document.getElementById("bc-preview-editable").value = "";
+  document.getElementById("bc-preview-char-count").textContent = "0";
+  document.getElementById("bc-preview-status").textContent = "";
 }
 
 function selectBcSegment(segment, btn) {
@@ -1731,22 +1756,21 @@ function loadBroadcastTab() {
 function loadTemplatePreview() {
   var templateId = document.getElementById("bc-template-select").value;
   var preview = document.getElementById("bc-template-preview");
-  var mainPreview = document.getElementById("bc-preview");
+
+  bcPreviewReady = false;
+  document.getElementById("bc-preview-editable").value = "";
+  document.getElementById("bc-preview-char-count").textContent = "0";
+  document.getElementById("bc-preview-status").textContent = "";
 
   if (!templateId) {
-    preview.textContent = "テンプレートを選択すると、ここにプレビューが表示されます";
+    preview.textContent = "テンプレートを選択すると、ここに原文が表示されます";
     preview.style.color = "var(--text-sub)";
-    mainPreview.textContent = "テンプレートを選択してください";
-    mainPreview.style.color = "var(--text-sub)";
     return;
   }
 
   if (bcTemplateCache[templateId]) {
-    var content = bcTemplateCache[templateId];
-    preview.textContent = content;
+    preview.textContent = bcTemplateCache[templateId];
     preview.style.color = "var(--text-main)";
-    mainPreview.textContent = content;
-    mainPreview.style.color = "var(--text-main)";
     return;
   }
 
@@ -1764,10 +1788,8 @@ function loadTemplatePreview() {
         bcTemplateCache[templateId] = d.content;
         preview.textContent = d.content;
         preview.style.color = "var(--text-main)";
-        mainPreview.textContent = d.content;
-        mainPreview.style.color = "var(--text-main)";
       } else {
-        preview.textContent = "テンプレートの取得に失敗しました: " + (d.error || "不明");
+        preview.textContent = "テンプレートの取得に失敗しました";
         preview.style.color = "var(--danger)";
       }
     })
@@ -1777,20 +1799,96 @@ function loadTemplatePreview() {
     });
 }
 
+// ★ 新機能: AIプレビュー生成
+function generatePreview() {
+  var templateId = document.getElementById("bc-template-select").value;
+  if (!templateId) {
+    showToast("テンプレートを選択してください");
+    return;
+  }
+
+  var templateContent = bcTemplateCache[templateId] || "";
+  if (!templateContent) {
+    showToast("テンプレートが読み込まれていません");
+    return;
+  }
+
+  var useAi = document.getElementById("bc-ai-personalize").checked;
+  var btn = document.getElementById("bc-generate-btn");
+  var statusEl = document.getElementById("bc-preview-status");
+  var editArea = document.getElementById("bc-preview-editable");
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">🤖</span> 生成中...';
+  statusEl.textContent = "AIが文面を作成しています...";
+  statusEl.style.color = "var(--text-muted)";
+
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "generateBroadcastPreview",
+      templateId: templateId,
+      segment: bcCurrentSegment,
+      useAiPersonalize: useAi
+    })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.disabled = false;
+      btn.innerHTML = "🤖 プレビューを作成";
+
+      if (d.status === "success" && d.preview) {
+        editArea.value = d.preview;
+        document.getElementById("bc-preview-char-count").textContent = d.preview.length;
+        bcPreviewReady = true;
+
+        if (useAi) {
+          statusEl.textContent = "✅ AIがパーソナライズしました（編集可能）";
+          statusEl.style.color = "var(--success)";
+        } else {
+          statusEl.textContent = "✅ プレースホルダーを置換しました（編集可能）";
+          statusEl.style.color = "var(--success)";
+        }
+      } else {
+        statusEl.textContent = "❌ プレビュー生成に失敗しました";
+        statusEl.style.color = "var(--danger)";
+        // フォールバック: テンプレート原文をそのまま表示
+        editArea.value = templateContent;
+        document.getElementById("bc-preview-char-count").textContent = templateContent.length;
+        bcPreviewReady = true;
+      }
+    })
+    .catch(function(err) {
+      console.error("Preview generation error:", err);
+      btn.disabled = false;
+      btn.innerHTML = "🤖 プレビューを作成";
+      statusEl.textContent = "❌ 通信エラー";
+      statusEl.style.color = "var(--danger)";
+      // フォールバック
+      editArea.value = templateContent;
+      document.getElementById("bc-preview-char-count").textContent = templateContent.length;
+      bcPreviewReady = true;
+    });
+}
+
 function sendBroadcast() {
   var message = "";
   var templateId = "";
-  var useAi = false;
 
   if (bcCurrentMode === "manual") {
     message = document.getElementById("bc-message").value.trim();
     if (!message) { showToast("メッセージを入力してください"); return; }
     if (message.length > 500) { showToast("500文字以内で入力してください"); return; }
   } else {
+    // テンプレートモード: 編集可能プレビューの内容を送信
+    message = document.getElementById("bc-preview-editable").value.trim();
+    if (!message) {
+      showToast("まず「プレビューを作成」ボタンでメッセージを生成してください");
+      return;
+    }
+    if (message.length > 500) { showToast("500文字以内にしてください"); return; }
     templateId = document.getElementById("bc-template-select").value;
-    if (!templateId) { showToast("テンプレートを選択してください"); return; }
-    useAi = document.getElementById("bc-ai-personalize").checked;
-    message = bcTemplateCache[templateId] || "";
   }
 
   var countEl = document.getElementById("bc-target-count");
@@ -1799,7 +1897,7 @@ function sendBroadcast() {
 
   var segNames = { all: "全員", vip: "VIP", active: "アクティブ", dormant: "休眠", "new": "新規" };
   var segLabel = segNames[bcCurrentSegment] || bcCurrentSegment;
-  if (!confirm("「" + segLabel + "」セグメント（" + targetCount + "名）にメッセージを配信します。\n\nよろしいですか？")) {
+  if (!confirm("「" + segLabel + "」セグメント（" + targetCount + "名）に以下のメッセージを配信します。\n\n" + message.substring(0, 100) + (message.length > 100 ? "..." : "") + "\n\nよろしいですか？")) {
     return;
   }
 
@@ -1807,19 +1905,17 @@ function sendBroadcast() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spin">📣</span> 配信中...';
 
-  var payload = {
-    action: "sendBroadcast",
-    segment: bcCurrentSegment,
-    message: message,
-    templateId: templateId,
-    useAiPersonalize: useAi,
-    mode: bcCurrentMode
-  };
-
   fetch(GAS_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      action: "sendBroadcast",
+      segment: bcCurrentSegment,
+      message: message,
+      templateId: templateId,
+      useAiPersonalize: false, // プレビュー時に既にAI処理済み、ここでは直接送信
+      mode: bcCurrentMode
+    })
   })
     .then(function(r) { return r.json(); })
     .then(function(d) {
@@ -1833,12 +1929,18 @@ function sendBroadcast() {
         if (errCnt > 0) msg += "（エラー: " + errCnt + "件）";
         showToast(msg);
 
+        // リセット
         if (bcCurrentMode === "manual") {
           document.getElementById("bc-message").value = "";
           document.getElementById("bc-char-count").textContent = "0";
+          document.getElementById("bc-preview-readonly").textContent = "メッセージを入力すると、ここにプレビューが表示されます";
+          document.getElementById("bc-preview-readonly").style.color = "var(--text-sub)";
+        } else {
+          document.getElementById("bc-preview-editable").value = "";
+          document.getElementById("bc-preview-char-count").textContent = "0";
+          document.getElementById("bc-preview-status").textContent = "";
+          bcPreviewReady = false;
         }
-        document.getElementById("bc-preview").textContent = "メッセージを入力すると、ここにプレビューが表示されます";
-        document.getElementById("bc-preview").style.color = "var(--text-sub)";
         loadBroadcastHistory();
       } else {
         showToast("❌ 配信に失敗しました: " + (d.error || "不明なエラー"));
@@ -1871,8 +1973,6 @@ function loadBroadcastHistory() {
           var segLabel = segNames[h.segment] || h.segment;
           var modeLabel = modeNames[h.mode] || h.mode;
           var msgPreview = (h.message || "").substring(0, 50) + ((h.message || "").length > 50 ? "..." : "");
-
-          // ★修正: 日時フォーマット改善
           var timeStr = "";
           if (h.sent_at) {
             var d2 = new Date(h.sent_at);
