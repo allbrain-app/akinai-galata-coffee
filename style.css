@@ -1410,23 +1410,20 @@ body {
 
 /* メニュースライドアニメーション */
 #menu-items {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-#menu-items {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.25s ease, opacity 0.2s ease;
   overflow: hidden;
 }
 #menu-items.slide-out-left {
-  transform: translateX(-100%);
+  transform: translateX(-40px);
   opacity: 0;
 }
 #menu-items.slide-out-right {
-  transform: translateX(100%);
+  transform: translateX(40px);
   opacity: 0;
 }
 #menu-items.no-transition {
   transition: none !important;
 }
+
 
 
