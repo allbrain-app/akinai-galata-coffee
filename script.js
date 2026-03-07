@@ -404,6 +404,13 @@ function removeFromCart(idx) {
 function submitOrder() {
   if (cart.length === 0) return;
 
+  // テーブル番号チェック
+  if (!tableId) {
+    showToast("テーブル番号を設定してください");
+    openModal("tableModal");
+    return;
+  }
+
   var orderItems = cart.map(function(item) {
     return { name: item.name, price: item.price };
   });
@@ -448,7 +455,10 @@ function submitOrder() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
     .then(function(d) {
       console.log("注文応答:", d);
       showOrderLoading(false);
@@ -472,16 +482,84 @@ function submitOrder() {
           preloadHistoryData(userId, true);
         }
       } else {
-        showToast("注文失敗: " + (d.message || ""));
+        showOrderError(d.message || "注文処理に失敗しました", payload);
       }
     })
     .catch(function(err) {
       console.error("通信エラー:", err);
       showOrderLoading(false);
       resetOrderBtn(orderBtn);
-      showToast("通信エラーが発生しました");
+      showOrderError("通信エラーが発生しました。電波状況を確認してください。", payload);
     });
 }
+
+// 注文エラー表示（リトライ付き）
+var lastFailedPayload = null;
+
+function showOrderError(message, payload) {
+  lastFailedPayload = payload;
+  var container = document.getElementById("cart-items");
+  var footer = document.getElementById("cart-footer");
+
+  container.innerHTML = '<div style="text-align:center; padding:24px 0;">'
+    + '<div style="font-size:36px; margin-bottom:12px;">⚠️</div>'
+    + '<div style="font-size:15px; font-weight:700; color:var(--danger); margin-bottom:8px;">注文に失敗しました</div>'
+    + '<div style="font-size:13px; color:var(--text-muted); line-height:1.6;">' + message + '</div>'
+    + '</div>';
+
+  footer.innerHTML = '<button class="btn-primary" onclick="retryOrder()" style="margin-bottom:8px;">🔄 もう一度送信する</button>'
+    + '<button class="btn-ghost" onclick="closeOrderError()">戻る</button>';
+  footer.style.display = "block";
+}
+
+function retryOrder() {
+  if (!lastFailedPayload) return;
+
+  var footer = document.getElementById("cart-footer");
+  var retryBtn = footer.querySelector(".btn-primary");
+  if (retryBtn) {
+    retryBtn.disabled = true;
+    retryBtn.textContent = "再送信中...";
+    retryBtn.style.opacity = "0.6";
+  }
+  showOrderLoading(true);
+
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(lastFailedPayload)
+  })
+    .then(function(r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      showOrderLoading(false);
+      if (d.status === "success") {
+        lastFailedPayload = null;
+        var prevLevel = getLevel(totalOrderCount);
+        totalOrderCount += lastFailedPayload ? 0 : cart.length;
+        cart = [];
+        updateCartBadge();
+        closeModal("cartModal");
+        historyCache = null;
+        openModal("completeModal");
+      } else {
+        showOrderError(d.message || "注文処理に失敗しました", lastFailedPayload);
+      }
+    })
+    .catch(function(err) {
+      console.error("リトライエラー:", err);
+      showOrderLoading(false);
+      showOrderError("再送信にも失敗しました。しばらくしてからお試しください。", lastFailedPayload);
+    });
+}
+
+function closeOrderError() {
+  lastFailedPayload = null;
+  openCart();
+}
+
 
 
 // ============================================================
