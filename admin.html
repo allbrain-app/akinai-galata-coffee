@@ -8,6 +8,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
 
+  /* タブバー横スクロール */
+.tab-bar {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap !important;
+}
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+.tab-bar .tab-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* パネルスライドアニメーション */
+.tab-panel {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.tab-panel.slide-out-left {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+.tab-panel.slide-out-right {
+  transform: translateX(30px);
+  opacity: 0;
+}
+.tab-panel.slide-in-left {
+  transform: translateX(30px);
+  opacity: 0;
+}
+.tab-panel.slide-in-right {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+
+
   .segment-btn {
   flex-shrink: 0;
   padding: 6px 14px;
@@ -747,21 +783,58 @@ window.onload = function() {
   }
 };
 
+var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings"];
+
 function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
-  document.querySelectorAll(".tab-panel").forEach(function(p) { p.classList.remove("active"); });
-  document.querySelector('.tab-btn[onclick*="' + tab + '"]').classList.add("active");
-  document.getElementById("panel-" + tab).classList.add("active");
-  if (tab === "menu") loadMenuList();
-  if (tab === "orders") loadOrders(true);
-  if (tab === "customers") loadCustomers();
-  if (tab === "settings") loadSettings();
-  if (tab === "sales") loadSales();
-  if (tab === "aiusage") { loadAiUsage(); loadCampaignEffect(); }
-  if (tab === "broadcast") loadBroadcastTab();
-  if (tab === "aiusage") { loadAiUsage(); loadCampaignEffect(); loadAutoBroadcastStatus(); }
+  var oldTab = currentTab;
+  if (tab === oldTab) return;
+
+  var oldIndex = tabOrder.indexOf(oldTab);
+  var newIndex = tabOrder.indexOf(tab);
+  var goingRight = newIndex > oldIndex;
+
+  // 現在のパネルをスライドアウト
+  var oldPanel = document.getElementById("panel-" + oldTab);
+  if (oldPanel) {
+    oldPanel.classList.add(goingRight ? "slide-out-left" : "slide-out-right");
+  }
+
+  setTimeout(function() {
+    // タブ切替
+    currentTab = tab;
+    document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+    document.querySelectorAll(".tab-panel").forEach(function(p) {
+      p.classList.remove("active", "slide-out-left", "slide-out-right", "slide-in-left", "slide-in-right");
+    });
+    document.querySelector('.tab-btn[onclick*="' + tab + '"]').classList.add("active");
+
+    var newPanel = document.getElementById("panel-" + tab);
+    newPanel.classList.add(goingRight ? "slide-in-left" : "slide-in-right");
+    newPanel.classList.add("active");
+
+    // 強制リフロー
+    void newPanel.offsetWidth;
+
+    // スライドイン
+    newPanel.classList.remove("slide-in-left", "slide-in-right");
+
+    // アクティブタブを見えるようスクロール
+    var activeBtn = document.querySelector(".tab-btn.active");
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+
+    // データ読み込み
+    if (tab === "orders") loadOrders();
+    if (tab === "menu") loadMenu();
+    if (tab === "customers") loadCustomers();
+    if (tab === "sales") loadSales();
+    if (tab === "broadcast") loadBroadcast();
+    if (tab === "aiusage") { loadAiUsage(); loadCampaignEffect(); loadAutoBroadcastStatus(); }
+    if (tab === "settings") loadSettings();
+  }, 200);
 }
+
 
 function refreshCurrentTab() {
   if (currentTab === "orders") loadOrders(true);
@@ -2343,6 +2416,40 @@ function saveAutoBroadcastHour() {
   .catch(function(e) { console.error("Save hour error:", e); });
 }
 
+// ============================================================
+// 管理画面スワイプでタブ切替
+// ============================================================
+(function() {
+  var container = document.querySelector('.admin-container') || document.body;
+  var touchStartX = 0;
+  var touchStartY = 0;
+  var touchStartTime = 0;
+
+  container.addEventListener("touchstart", function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  container.addEventListener("touchend", function(e) {
+    var touchEndX = e.changedTouches[0].clientX;
+    var touchEndY = e.changedTouches[0].clientY;
+    var diffX = touchEndX - touchStartX;
+    var diffY = touchEndY - touchStartY;
+    var elapsed = Date.now() - touchStartTime;
+
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY) * 1.5 && elapsed < 500) {
+      var currentIndex = tabOrder.indexOf(currentTab);
+      if (currentIndex === -1) return;
+
+      if (diffX < 0 && currentIndex < tabOrder.length - 1) {
+        switchTab(tabOrder[currentIndex + 1]);
+      } else if (diffX > 0 && currentIndex > 0) {
+        switchTab(tabOrder[currentIndex - 1]);
+      }
+    }
+  }, { passive: true });
+})();
 
 
 </script>
