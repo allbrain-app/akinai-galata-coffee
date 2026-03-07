@@ -1206,50 +1206,49 @@ function generateTasteImage() {
   canvas.height = 960;
   var ctx = canvas.getContext("2d");
 
-  // 背景グラデーション
-  var grad = ctx.createLinearGradient(0, 0, 0, 960);
-  grad.addColorStop(0, "#1e3a5f");
-  grad.addColorStop(0.5, "#1a2744");
-  grad.addColorStop(1, "#0f1b33");
-  ctx.fillStyle = grad;
+  // 背景（白）
+  ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, 540, 960);
 
-  // 装飾の光
-  ctx.beginPath();
-  ctx.arc(270, 400, 200, 0, Math.PI * 2);
-  var glow = ctx.createRadialGradient(270, 400, 0, 270, 400, 200);
-  glow.addColorStop(0, "rgba(212,165,116,0.12)");
-  glow.addColorStop(1, "rgba(212,165,116,0)");
-  ctx.fillStyle = glow;
-  ctx.fill();
+  // 上部アクセントライン
+  ctx.fillStyle = "#3b82f6";
+  ctx.fillRect(0, 0, 540, 4);
 
   // 店名
   var shopNameText = document.getElementById("shop-name-text");
   var shopName = shopNameText ? shopNameText.textContent : "BAR";
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.font = "18px sans-serif";
+  ctx.fillStyle = "#9ca3af";
+  ctx.font = "16px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(shopName, 270, 50);
+  ctx.fillText(shopName, 270, 45);
 
   // タイトル
-  ctx.fillStyle = "#d4a574";
+  ctx.fillStyle = "#1f2937";
   ctx.font = "bold 28px sans-serif";
-  ctx.fillText("My Taste 診断結果", 270, 90);
+  ctx.fillText("My Taste 診断結果", 270, 85);
 
   // レベル
   var curLevel = getLevel(totalOrderCount);
-  ctx.fillStyle = curLevel.color;
+  ctx.fillStyle = "#3b82f6";
   ctx.font = "bold 22px sans-serif";
-  ctx.fillText(curLevel.icon + " Lv." + curLevel.lv + " " + curLevel.name, 270, 130);
+  ctx.fillText(curLevel.icon + " Lv." + curLevel.lv + " " + curLevel.name, 270, 125);
 
   // 注文数
-  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.fillStyle = "#6b7280";
   ctx.font = "15px sans-serif";
-  ctx.fillText("累計 " + totalOrderCount + " オーダー", 270, 160);
+  ctx.fillText("累計 " + totalOrderCount + " オーダー", 270, 155);
+
+  // 区切り線
+  ctx.strokeStyle = "#e5e7eb";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, 175);
+  ctx.lineTo(480, 175);
+  ctx.stroke();
 
   // レーダーチャート
   if (tasteData) {
-    var cx = 270, cy = 390, radius = 120;
+    var cx = 270, cy = 380, radius = 120;
     var labels = ["塩味", "甘味", "酸味", "苦味", "コク"];
     var values = [tasteData.salty, tasteData.sweet, tasteData.sour, tasteData.bitter, tasteData.rich];
     var maxVal = 10;
@@ -1267,7 +1266,7 @@ function generateTasteImage() {
         if (j === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       }
       ctx.closePath();
-      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.strokeStyle = "#e5e7eb";
       ctx.lineWidth = 1;
       ctx.stroke();
     }
@@ -1278,7 +1277,7 @@ function generateTasteImage() {
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(cx + radius * Math.cos(angle), cy + radius * Math.sin(angle));
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = "#e5e7eb";
       ctx.lineWidth = 1;
       ctx.stroke();
     }
@@ -1294,7 +1293,7 @@ function generateTasteImage() {
       if (j === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
     ctx.closePath();
-    ctx.fillStyle = "rgba(59,130,246,0.25)";
+    ctx.fillStyle = "rgba(59,130,246,0.15)";
     ctx.fill();
     ctx.strokeStyle = "#3b82f6";
     ctx.lineWidth = 2;
@@ -1311,39 +1310,47 @@ function generateTasteImage() {
       ctx.arc(px, py, 4, 0, Math.PI * 2);
       ctx.fillStyle = "#3b82f6";
       ctx.fill();
-      ctx.strokeStyle = "#fff";
+      ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
 
     // ラベル + 数値
-    ctx.font = "bold 16px sans-serif";
+    ctx.font = "bold 15px sans-serif";
     ctx.textAlign = "center";
     for (var j = 0; j < 5; j++) {
       var angle = startAngle + j * angleStep;
       var lx = cx + (radius + 35) * Math.cos(angle);
       var ly = cy + (radius + 35) * Math.sin(angle);
-      ctx.fillStyle = "#d4a574";
+      ctx.fillStyle = "#1f2937";
       ctx.fillText(labels[j], lx, ly);
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
-      ctx.font = "14px sans-serif";
-      ctx.fillText(values[j].toFixed(1), lx, ly + 18);
-      ctx.font = "bold 16px sans-serif";
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "13px sans-serif";
+      ctx.fillText(values[j].toFixed(1), lx, ly + 17);
+      ctx.font = "bold 15px sans-serif";
     }
 
     // 味覚傾向
     var maxKey = Object.keys(tasteData).reduce(function(a, b) { return tasteData[a] > tasteData[b] ? a : b; });
     var labelMap = { salty: "塩味", sweet: "甘味", sour: "酸味", bitter: "苦味", rich: "コク" };
-    ctx.fillStyle = "#d4a574";
-    ctx.font = "bold 18px sans-serif";
+    ctx.fillStyle = "#1f2937";
+    ctx.font = "bold 17px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("「" + labelMap[maxKey] + "」を好む傾向があります", 270, 570);
+    ctx.fillText("「" + labelMap[maxKey] + "」を好む傾向があります", 270, 560);
   } else {
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.fillStyle = "#9ca3af";
     ctx.font = "16px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("注文データがまだありません", 270, 390);
+    ctx.fillText("注文データがまだありません", 270, 380);
   }
+
+  // 区切り線
+  ctx.strokeStyle = "#e5e7eb";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, 585);
+  ctx.lineTo(480, 585);
+  ctx.stroke();
 
   // 注文履歴（最新5件）
   if (historyCache) {
@@ -1351,10 +1358,10 @@ function generateTasteImage() {
     if (Array.isArray(historyCache)) { items = historyCache; }
     else if (historyCache.current) { items = historyCache.current; }
     if (items.length > 0) {
-      ctx.fillStyle = "#d4a574";
-      ctx.font = "bold 17px sans-serif";
+      ctx.fillStyle = "#1f2937";
+      ctx.font = "bold 16px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("最近のオーダー", 270, 620);
+      ctx.fillText("最近のオーダー", 270, 615);
 
       ctx.font = "14px sans-serif";
       ctx.textAlign = "left";
@@ -1363,11 +1370,11 @@ function generateTasteImage() {
         var item = displayItems[k];
         var name = item.itemName || item.name || "不明";
         var price = item.price || 0;
-        var yPos = 655 + k * 30;
-        ctx.fillStyle = "rgba(255,255,255,0.8)";
+        var yPos = 650 + k * 30;
+        ctx.fillStyle = "#1f2937";
         ctx.fillText("• " + name, 90, yPos);
         ctx.textAlign = "right";
-        ctx.fillStyle = "rgba(255,255,255,0.5)";
+        ctx.fillStyle = "#6b7280";
         ctx.fillText("¥" + Number(price).toLocaleString(), 450, yPos);
         ctx.textAlign = "left";
       }
@@ -1375,8 +1382,8 @@ function generateTasteImage() {
   }
 
   // フッター
-  ctx.fillStyle = "rgba(255,255,255,0.3)";
-  ctx.font = "14px sans-serif";
+  ctx.fillStyle = "#9ca3af";
+  ctx.font = "13px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("AIソムリエがあなたの味覚を分析しました", 270, 920);
 
@@ -1406,6 +1413,7 @@ function generateTasteImage() {
       closeModal("shareImageModal");
     });
 }
+
 
 
 // ============================================================
