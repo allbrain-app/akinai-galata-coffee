@@ -275,7 +275,7 @@ function filterCategory(cat) {
 
     // フェーズ2: 新しいコンテンツを反対側からスライドイン準備
     menuItems.classList.remove("slide-out-left", "slide-out-right");
-    menuItems.classList.add(goingRight ? "slide-in-left" : "slide-in-right");
+    menuItems.classList.add(goingRight ? "slide-in-right" : "slide-in-left");
 
     // 強制リフロー
     void menuItems.offsetWidth;
@@ -284,6 +284,7 @@ function filterCategory(cat) {
     menuItems.classList.remove("slide-in-left", "slide-in-right");
   }, 200);
 }
+
 
 
 // ============================================================
