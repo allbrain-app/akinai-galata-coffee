@@ -27,21 +27,17 @@
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 .tab-panel.slide-out-left {
-  transform: translateX(-30px);
+  transform: translateX(-100%);
   opacity: 0;
 }
 .tab-panel.slide-out-right {
-  transform: translateX(30px);
+  transform: translateX(100%);
   opacity: 0;
 }
-.tab-panel.slide-in-left {
-  transform: translateX(30px);
-  opacity: 0;
+.tab-panel.no-transition {
+  transition: none !important;
 }
-.tab-panel.slide-in-right {
-  transform: translateX(-30px);
-  opacity: 0;
-}
+
 
 
   .segment-btn {
@@ -785,6 +781,8 @@ window.onload = function() {
 
 var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings"];
 
+var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings"];
+
 function switchTab(tab) {
   var oldTab = currentTab;
   if (tab === oldTab) return;
@@ -793,38 +791,40 @@ function switchTab(tab) {
   var newIndex = tabOrder.indexOf(tab);
   var goingRight = newIndex > oldIndex;
 
-  // 現在のパネルをスライドアウト
   var oldPanel = document.getElementById("panel-" + oldTab);
   if (oldPanel) {
     oldPanel.classList.add(goingRight ? "slide-out-left" : "slide-out-right");
   }
 
   setTimeout(function() {
-    // タブ切替
     currentTab = tab;
     document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
     document.querySelectorAll(".tab-panel").forEach(function(p) {
-      p.classList.remove("active", "slide-out-left", "slide-out-right", "slide-in-left", "slide-in-right");
+      p.classList.remove("active", "slide-out-left", "slide-out-right", "no-transition");
+      p.style.transform = "";
+      p.style.opacity = "";
     });
     document.querySelector('.tab-btn[onclick*="' + tab + '"]').classList.add("active");
 
     var newPanel = document.getElementById("panel-" + tab);
-    newPanel.classList.add(goingRight ? "slide-in-left" : "slide-in-right");
-    newPanel.classList.add("active");
 
-    // 強制リフロー
+    // トランジション無効にして反対側に配置
+    newPanel.classList.add("no-transition", "active");
+    newPanel.style.transform = goingRight ? "translateX(100%)" : "translateX(-100%)";
+    newPanel.style.opacity = "0";
+
     void newPanel.offsetWidth;
 
-    // スライドイン
-    newPanel.classList.remove("slide-in-left", "slide-in-right");
+    // トランジション有効にしてスライドイン
+    newPanel.classList.remove("no-transition");
+    newPanel.style.transform = "translateX(0)";
+    newPanel.style.opacity = "1";
 
-    // アクティブタブを見えるようスクロール
     var activeBtn = document.querySelector(".tab-btn.active");
     if (activeBtn) {
       activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     }
 
-    // データ読み込み
     if (tab === "orders") loadOrders();
     if (tab === "menu") loadMenu();
     if (tab === "customers") loadCustomers();
@@ -832,8 +832,9 @@ function switchTab(tab) {
     if (tab === "broadcast") loadBroadcast();
     if (tab === "aiusage") { loadAiUsage(); loadCampaignEffect(); loadAutoBroadcastStatus(); }
     if (tab === "settings") loadSettings();
-  }, 200);
+  }, 250);
 }
+
 
 
 function refreshCurrentTab() {
