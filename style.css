@@ -315,10 +315,11 @@ body {
 
 .cat-btn.active {
   background: var(--primary);
-  color: #000;
+  color: #ffffff;
   border-color: var(--primary);
   font-weight: 600;
 }
+
 
 .cat-btn:active {
   transform: scale(0.95);
