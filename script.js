@@ -135,7 +135,7 @@ function initializeLiff() {
     } catch (e) {}
   }
 
-  // 店舗名を動的に取得
+ // 店舗名・テーマを動的に取得
   fetch(GAS_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -144,9 +144,12 @@ function initializeLiff() {
     if (d.status === 'success') {
       var iconEl = document.getElementById('shop-icon');
       var nameEl = document.getElementById('shop-name-text');
-      if (iconEl) iconEl.textContent = d.shopIcon || '🍸';
-      if (nameEl) nameEl.textContent = d.shopName || 'BAR';
-      document.title = d.shopName || 'モバイルオーダー';
+      if (iconEl && d.shopIcon) iconEl.textContent = d.shopIcon;
+      if (nameEl && d.shopName) nameEl.textContent = d.shopName;
+      if (d.shopName) document.title = d.shopName;
+      // テーマ適用
+      var theme = d.themeMode || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
     }
   }).catch(function(e) { console.warn('Shop config load failed:', e); });
 
