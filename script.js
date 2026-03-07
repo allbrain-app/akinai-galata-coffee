@@ -231,6 +231,7 @@ function setTable() {
   tableId = val;
   localStorage.setItem("MO_TABLE", tableId);
   closeModal("tableModal");
+ console.log(closeModal.toString());
 }
 
 // ============================================================
