@@ -1350,7 +1350,7 @@ function requestBill() {
 
 
 function renderBill(data) {
-  document.getElementById("bill-table-no").textContent = currentTable || "-";
+  document.getElementById("bill-table-no").textContent = tableId || "-";
   document.getElementById("bill-content").style.display = "block";
 
   var container = document.getElementById("bill-items");
@@ -1382,7 +1382,7 @@ function showBillRequested() {
   document.getElementById("bill-empty").style.display = "none";
   document.getElementById("bill-requested").style.display = "block";
 
-  document.getElementById("bill-req-table").textContent = currentTable || "-";
+  document.getElementById("bill-req-table").textContent = tableId || "-";
 
   var total = 0;
   var html = "";
