@@ -1399,6 +1399,7 @@ function generateTasteImage() {
     .then(function(d) {
       document.getElementById("share-loading").style.display = "none";
       if (d.status === "success" && d.url) {
+        shareImageUrl = d.url;
         document.getElementById("share-result").style.display = "block";
         document.getElementById("share-preview-img").src = d.url;
         document.getElementById("share-direct-link").href = d.url;
