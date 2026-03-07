@@ -1414,6 +1414,82 @@ function generateTasteImage() {
     });
 }
 
+// ============================================================
+// 画像保存 & LINEシェア
+// ============================================================
+var shareImageUrl = "";
+
+function saveShareImage() {
+  if (!shareImageUrl) return;
+  var btn = document.getElementById("share-save-btn");
+  btn.textContent = "処理中...";
+  btn.disabled = true;
+
+  // Canvas から Blob を生成してダウンロード試行
+  fetch(shareImageUrl)
+    .then(function(r) { return r.blob(); })
+    .then(function(blob) {
+      // Web Share API（iOS Safari / Android Chrome 対応）
+      if (navigator.share && navigator.canShare) {
+        var file = new File([blob], "mytaste.png", { type: "image/png" });
+        if (navigator.canShare({ files: [file] })) {
+          return navigator.share({
+            files: [file],
+            title: "My Taste 診断結果"
+          }).then(function() {
+            showToast("シェアしました！");
+          });
+        }
+      }
+      // フォールバック: <a download> でダウンロード
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "mytaste.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("画像を保存しました");
+    })
+    .catch(function() {
+      // 最終フォールバック: 別タブで開く
+      window.open(shareImageUrl, "_blank");
+      showToast("別タブで開きました。長押しで保存してください");
+    })
+    .finally(function() {
+      btn.textContent = "💾 画像を保存する";
+      btn.disabled = false;
+    });
+}
+
+function shareToLine() {
+  if (!shareImageUrl) return;
+  if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
+    // LIFF内: shareTargetPicker を使用
+    liff.shareTargetPicker([
+      {
+        type: "image",
+        originalContentUrl: shareImageUrl,
+        previewImageUrl: shareImageUrl
+      }
+    ]).then(function(res) {
+      if (res && res.status === "success") {
+        showToast("シェアしました！");
+      }
+    }).catch(function(e) {
+      console.error("Share error:", e);
+      // フォールバック: LINE URLスキーム
+      var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🍷\n" + shareImageUrl);
+      window.open(lineUrl, "_blank");
+    });
+  } else {
+    // 外部ブラウザ: LINE URLスキーム
+    var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🍷\n" + shareImageUrl);
+    window.open(lineUrl, "_blank");
+  }
+}
+
 
 // ============================================================
 // 会計機能
