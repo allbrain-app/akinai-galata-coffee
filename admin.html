@@ -7,6 +7,42 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+
+  .segment-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Noto Sans JP', sans-serif;
+  white-space: nowrap;
+}
+
+.segment-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.segment-btn:hover {
+  opacity: 0.85;
+}
+
+.customer-segment-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 8px;
+  margin-left: 6px;
+}
+
+  
     :root {
       --primary: #3b82f6;
       --primary-dark: #2563eb;
@@ -919,14 +955,40 @@ function loadCustomers() {
     });
 }
 
+var currentSegment = 'all';
+
+function getCustomerSegment(customer) {
+  var visitCount = Number(customer.visit_count) || 0;
+  var lastVisit = customer.last_visit_date;
+
+  // VIP判定: 来店3回以上かつ最終来店10日以内
+  var daysSinceVisit = 999;
+  if (lastVisit) {
+    var last = new Date(lastVisit);
+    var now = new Date();
+    daysSinceVisit = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+  }
+
+  if (visitCount >= 3 && daysSinceVisit <= 10) {
+    return { id: 'vip', label: '👑 VIP', color: '#f59e0b', bg: '#fffbeb' };
+  } else if (daysSinceVisit <= 30) {
+    return { id: 'active', label: '✅ アクティブ', color: '#22c55e', bg: '#f0fdf4' };
+  } else if (visitCount === 0 || (visitCount <= 1 && daysSinceVisit <= 7)) {
+    return { id: 'new', label: '🆕 新規', color: '#3b82f6', bg: '#eff6ff' };
+  } else {
+    return { id: 'dormant', label: '💤 休眠', color: '#9ca3af', bg: '#f9fafb' };
+  }
+}
+
 function renderCustomers(customers) {
   var container = document.getElementById("customer-list");
   if (!customers.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">顧客データがありません</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">該当する顧客がいません</div></div>';
     return;
   }
   var html = "";
   customers.forEach(function(c) {
+    var segment = getCustomerSegment(c);
     var tagsHtml = "";
     if (c.tags) {
       c.tags.split(",").forEach(function(t) {
@@ -939,7 +1001,9 @@ function renderCustomers(customers) {
     html += '<div class="customer-card" onclick="openCustomerDetail(\'' + c.line_user_id + '\')">' +
       '<div class="customer-avatar">👤</div>' +
       '<div class="customer-info">' +
-      '<div class="customer-name">' + (c.display_name || "不明") + "</div>" +
+      '<div class="customer-name">' + (c.display_name || "不明") +
+      '<span class="customer-segment-badge" style="background:' + segment.bg + '; color:' + segment.color + ';">' + segment.label + '</span>' +
+      "</div>" +
       '<div class="customer-meta"><span>来店 ' + (c.visit_count || 0) + "回</span><span>" + spend + "</span><span>" + lastVisit + "</span></div>" +
       (tagsHtml ? '<div style="margin-top:4px;">' + tagsHtml + "</div>" : "") +
       "</div>" +
@@ -948,6 +1012,41 @@ function renderCustomers(customers) {
       '<div class="customer-stats-sub">来店</div></div></div>';
   });
   container.innerHTML = html;
+}
+
+function filterSegment(segment) {
+  currentSegment = segment;
+
+  // ボタンのactive状態を更新
+  document.querySelectorAll('.segment-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    if (btn.getAttribute('onclick').indexOf("'" + segment + "'") >= 0) {
+      btn.classList.add('active');
+    }
+  });
+
+  filterCustomers();
+}
+
+function filterCustomers() {
+  var query = (document.getElementById("customer-search").value || "").toLowerCase();
+  var filtered = allCustomers.filter(function(c) {
+    // セグメントフィルタ
+    if (currentSegment !== 'all') {
+      var seg = getCustomerSegment(c);
+      if (seg.id !== currentSegment) return false;
+    }
+    // テキスト検索
+    if (query) {
+      var name = (c.display_name || "").toLowerCase();
+      var tags = (c.tags || "").toLowerCase();
+      if (name.indexOf(query) < 0 && tags.indexOf(query) < 0) return false;
+    }
+    return true;
+  });
+
+  document.getElementById("customer-count").textContent = filtered.length;
+  renderCustomers(filtered);
 }
 
 function filterCustomers() {
