@@ -163,7 +163,7 @@ function initializeLiff() {
       var theme = d.themeMode || 'light';
       document.documentElement.setAttribute('data-theme', theme);
     }
-  ).catch(function(e) { console.warn('Shop config load failed:', e); });
+  }).catch(function(e) { console.warn('Shop config load failed:', e); });
 
   liff.init({ liffId: MY_LIFF_ID }).then(function() {
     if (!liff.isLoggedIn()) {
