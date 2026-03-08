@@ -1625,14 +1625,20 @@ function uploadShopLogo() {
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.status === "success" && d.url) {
-        document.getElementById("cfg-SHOP_LOGO_URL").value = d.url;
-        showToast("ロゴをアップロードしました。「すべて保存」で反映されます");
-        loadSettings();
-        // 即座にhiddenフィールドを更新して保存可能にする
-        setTimeout(function() {
-          var el = document.getElementById("cfg-SHOP_LOGO_URL");
-          if (el) el.value = d.url;
-        }, 500);
+        // configに即保存
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "saveSettings",
+            configs: [{ key: "SHOP_LOGO_URL", value: d.url }],
+            prompts: []
+          })
+        })
+        .then(function() {
+          showToast("ロゴを保存しました");
+          loadSettings();
+        });
       } else {
         showToast("アップロードに失敗しました");
       }
@@ -1644,6 +1650,24 @@ function uploadShopLogo() {
   };
   reader.readAsDataURL(file);
 }
+
+function removeShopLogo() {
+  if (!confirm("ロゴを削除しますか？")) return;
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "saveSettings",
+      configs: [{ key: "SHOP_LOGO_URL", value: "" }],
+      prompts: []
+    })
+  })
+  .then(function() {
+    showToast("ロゴを削除しました");
+    loadSettings();
+  });
+}
+
 
 function removeShopLogo() {
   if (!confirm("ロゴを削除しますか？")) return;
