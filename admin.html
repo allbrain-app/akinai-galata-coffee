@@ -2384,7 +2384,7 @@ function toggleAutoBroadcast() {
   var newState = !autoBcEnabled;
 
   var msg = newState
-    ? "自動配信を有効にしますか？\n毎日18時に対象顧客へAIがメッセージを送信します。"
+    ? "自動配信を有効にしますか？\n設定した時間に対象顧客へAIがメッセージを送信します。"
     : "自動配信を停止しますか？\n手動配信は引き続き利用できます。";
 
   if (!confirm(msg)) return;
