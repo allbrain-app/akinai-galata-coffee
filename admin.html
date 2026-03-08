@@ -1669,14 +1669,6 @@ function removeShopLogo() {
 }
 
 
-function removeShopLogo() {
-  if (!confirm("ロゴを削除しますか？")) return;
-  document.getElementById("cfg-SHOP_LOGO_URL").value = "";
-  showToast("ロゴを削除しました。「すべて保存」で反映されます");
-  loadSettings();
-}
-
-
 // ============================================================
 // 売上分析タブ
 // ============================================================
