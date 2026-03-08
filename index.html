@@ -192,6 +192,20 @@
   </div>
 </div>
 
+<!-- ======================================== 
+     人気ランキングモーダル
+     ======================================== -->
+<div id="popularModal" class="modal-overlay" onclick="if(event.target===this)closeModal('popularModal')">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🏆 みんなの人気メニュー</span>
+      <button class="modal-close" onclick="closeModal('popularModal')">✕</button>
+    </div>
+    <div id="popular-content"></div>
+  </div>
+</div>
+
+
 <!-- 注文完了モーダル -->
 <div class="modal-backdrop center" id="completeModal">
   <div class="modal-center-box">
