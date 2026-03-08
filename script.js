@@ -147,14 +147,23 @@ function initializeLiff() {
     if (d.status === 'success') {
       var iconEl = document.getElementById('shop-icon');
       var nameEl = document.getElementById('shop-name-text');
-      if (iconEl && d.shopIcon) iconEl.textContent = d.shopIcon;
+
+      // ロゴ優先表示：SHOP_LOGO_URL があれば画像、なければ SHOP_ICON の絵文字
+      if (iconEl) {
+        if (d.shopLogoUrl) {
+          iconEl.innerHTML = '<img src="' + d.shopLogoUrl + '" alt="" style="height:28px; vertical-align:middle; border-radius:4px;">';
+        } else if (d.shopIcon) {
+          iconEl.textContent = d.shopIcon;
+        }
+      }
+
       if (nameEl && d.shopName) nameEl.textContent = d.shopName;
       if (d.shopName) document.title = d.shopName;
       // テーマ適用
       var theme = d.themeMode || 'light';
       document.documentElement.setAttribute('data-theme', theme);
     }
-  }).catch(function(e) { console.warn('Shop config load failed:', e); });
+  ).catch(function(e) { console.warn('Shop config load failed:', e); });
 
   liff.init({ liffId: MY_LIFF_ID }).then(function() {
     if (!liff.isLoggedIn()) {
