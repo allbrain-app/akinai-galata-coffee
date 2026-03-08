@@ -283,7 +283,7 @@ function renderMenu() {
       '<div class="card-img">' + imgHtml + soldBadge + '</div>' +
       '<div class="card-body">' +
       '<div class="item-name">' + item.name + '</div>' +
-      '<div class="item-price">¥' + item.price + '</div>' +
+      '<div class="item-price">¥' + Number(item.price).toLocaleString() + '</div>' +
       '</div></div>';
   });
   container.innerHTML = html;
