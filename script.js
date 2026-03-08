@@ -577,7 +577,7 @@ function showLevelUp(level) {
     '<div class="lu-name" style="color:' + level.color + ';">Lv.' + level.lv + ' ' + level.name + '</div>' +
     '<div class="lu-msg">おめでとうございます！<br>新しい特典が解放されました</div>' +
     '<div class="levelup-tags">' +
-    '<span class="tag-sommelier">🍷 ' + level.sommelier + '</span>' +
+    '<span class="tag-sommelier">🤖 ' + level.sommelier + '</span>' +
     (level.shopBenefit !== "—" ? '<span class="tag-shop">🎁 ' + level.shopBenefit + '</span>' : '') +
     '</div>' +
     '<button class="btn-primary" style="background:' + level.color + ';" onclick="closeModal(\'levelUpModal\'); openModal(\'completeModal\');">OK！</button>';
@@ -723,7 +723,7 @@ function renderLevelList() {
       '</div>' +
       '<div class="level-item-req">' + lv.reqLabel + 'で到達</div>' +
       '<div class="level-tags">' +
-      '<span class="tag-sommelier">🍷 ' + lv.sommelier + '</span>' +
+      '<span class="tag-sommelier">🤖 ' + lv.sommelier + '</span>' +
       (lv.shopBenefit !== "—" ? '<span class="tag-shop">🎁 ' + lv.shopBenefit + '</span>' : '') +
       '</div></div></div>';
   });
@@ -1103,7 +1103,7 @@ function renderConsultStep() {
 
   if (consultStep < consultQuestions.length) {
     var q = consultQuestions[consultStep];
-    var html = '<div class="consult-bubble"><div class="cb-inner"><div class="cb-icon">🍷</div><div><div class="cb-label">ソムリエ</div><div class="cb-text">' + q.q + '</div></div></div></div>';
+    var html = '<div class="consult-bubble"><div class="cb-inner"><div class="cb-icon">🤖</div><div><div class="cb-label">ソムリエ</div><div class="cb-text">' + q.q + '</div></div></div></div>';
     html += '<div class="consult-options">';
     q.opts.forEach(function(opt) {
       html += '<button class="consult-opt" onclick="consultAnswer(\'' + opt + '\')">' + opt + '</button>';
@@ -1484,12 +1484,12 @@ function shareToLine() {
     }).catch(function(e) {
       console.error("Share error:", e);
       // フォールバック: LINE URLスキーム
-      var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🍷\n" + shareImageUrl);
+      var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🤖\n" + shareImageUrl);
       window.open(lineUrl, "_blank");
     });
   } else {
     // 外部ブラウザ: LINE URLスキーム
-    var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🍷\n" + shareImageUrl);
+    var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🤖\n" + shareImageUrl);
     window.open(lineUrl, "_blank");
   }
 }
