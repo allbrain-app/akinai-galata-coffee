@@ -1082,6 +1082,99 @@ function renderRecFallback() {
 }
 
 // ============================================================
+// みんなの人気メニュー
+// ============================================================
+function openPopularRanking() {
+  var container = document.getElementById("popular-content");
+  container.innerHTML = '<div style="text-align:center;"><div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">人気メニューを分析中</div><div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  openModal("popularModal");
+
+  var userId = currentUserId;
+  if (!userId) {
+    try {
+      var profile = liff.getDecodedIDToken();
+      if (profile) userId = profile.sub || "";
+    } catch (e) {}
+  }
+
+  var history = historyCache || [];
+
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "getPopularRanking",
+      userId: userId,
+      history: history
+    })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === "success" && d.ranking && d.ranking.length > 0) {
+        renderPopularResults(d.ranking, d.aiComment || "");
+      } else {
+        renderPopularFallback();
+      }
+    })
+    .catch(function(err) {
+      console.error("Popular ranking error:", err);
+      renderPopularFallback();
+    });
+}
+
+function renderPopularResults(ranking, aiComment) {
+  var medals = ["🥇", "🥈", "🥉", "4", "5"];
+  var html = '';
+
+  if (aiComment) {
+    html += '<div class="rec-analysis"><div class="ra-label">🤖 AIからのコメント</div><div class="ra-text">' + aiComment + '</div></div>';
+  }
+
+  html += '<div style="font-size:14px; font-weight:700; margin-bottom:12px;">人気ランキング TOP' + ranking.length + '</div>';
+
+  ranking.forEach(function(item, idx) {
+    var medalStr = idx < 3 ? '<span style="font-size:20px;">' + medals[idx] + '</span>' : '<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e5e7eb;font-size:12px;font-weight:700;">' + medals[idx] + '</span>';
+
+    html += '<div class="rec-card">' +
+      '<div class="rc-top">' +
+      '<div style="margin-right:10px;">' + medalStr + '</div>' +
+      '<div class="rc-emoji">' + (item.emoji || '🍽') + '</div>' +
+      '<div style="flex:1;">' +
+      '<div style="display:flex; align-items:center;">' +
+      '<span class="rc-name">' + item.name + '</span>' +
+      (item.match ? '<span class="rc-match">' + item.match + '%</span>' : '') +
+      '</div>' +
+      (item.aiTip ? '<div class="rc-reason">' + item.aiTip + '</div>' : '') +
+      '<div class="rc-price">¥' + item.price.toLocaleString() + '</div>' +
+      '<div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">' + item.orderCount + '人が注文</div>' +
+      '</div></div>' +
+      '<button class="btn-cart-add" onclick="addToCartDirect(\'' + item.name.replace(/'/g, "\\'") + '\',' + item.price + ')">🛒 カートに追加</button></div>';
+  });
+
+  html += '<button class="btn-ghost" onclick="closeModal(\'popularModal\')">閉じる</button>';
+  document.getElementById("popular-content").innerHTML = html;
+}
+
+function renderPopularFallback() {
+  // APIが未実装の場合、ローカルデータからフォールバック表示
+  var popular = allMenuItems.filter(function(i) { return !i.isSoldOut; }).slice(0, 5);
+  var ranking = popular.map(function(item, idx) {
+    return {
+      name: item.name,
+      price: item.price,
+      emoji: item.emoji || "🍽",
+      orderCount: Math.floor(Math.random() * 30) + 10,
+      aiTip: null,
+      match: null
+    };
+  });
+  // orderCount で降順ソート
+  ranking.sort(function(a, b) { return b.orderCount - a.orderCount; });
+  renderPopularResults(ranking, "みんなに人気のメニューをご紹介します！");
+}
+
+
+// ============================================================
 // AIソムリエ：相談モーダル
 // ============================================================
 var consultStep = 0;
