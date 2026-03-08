@@ -8,7 +8,7 @@ var tableId = "";
 var historyCache = null;
 var tasteChartInstance = null;
 var currentOptionItem = null;
-var myTasteCache = null;
+var 味覚診断Cache = null;
 var totalOrderCount = 0;
 var currentScreen = "menu";
 var currentUserId = "";
@@ -55,7 +55,7 @@ function switchScreen(screen) {
   });
 
   if (screen === "taste") {
-    renderMyTaste();
+    render味覚診断();
   }
 
   window.scrollTo({ top: 0 });
@@ -589,7 +589,7 @@ function showLevelUp(level) {
 // ============================================================
 // My Taste 描画
 // ============================================================
-function renderMyTaste() {
+function render味覚診断() {
   renderLevelDisplay();
   renderLevelList();
 
@@ -1435,7 +1435,7 @@ function saveShareImage() {
     .then(function(blob) {
       // Web Share API（iOS Safari / Android Chrome 対応）
       if (navigator.share && navigator.canShare) {
-        var file = new File([blob], "mytaste.png", { type: "image/png" });
+        var file = new File([blob], "味覚診断.png", { type: "image/png" });
         if (navigator.canShare({ files: [file] })) {
           return navigator.share({
             files: [file],
@@ -1449,7 +1449,7 @@ function saveShareImage() {
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
-      a.download = "mytaste.png";
+      a.download = "味覚診断.png";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
