@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アキナイAI 管理画面マニュアル</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--primary:#3b82f6;--primary-dark:#1e40af;--primary-light:#dbeafe;--text:#1e293b;--text-sub:#475569;--text-muted:#94a3b8;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--radius:12px;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans JP',sans-serif;color:var(--text);background:var(--bg);line-height:1.8;-webkit-text-size-adjust:100%;}
+a{color:var(--primary);text-decoration:none;}
+
+/* Layout */
+.manual-wrap{max-width:720px;margin:0 auto;padding:0 20px 80px;}
+
+/* Header */
+.manual-header{background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:48px 20px 40px;text-align:center;position:sticky;top:0;z-index:100;}
+.manual-header h1{font-size:24px;font-weight:800;margin-bottom:4px;}
+.manual-header p{font-size:13px;opacity:0.8;}
+.manual-header .ver{display:inline-block;background:rgba(255,255,255,0.2);padding:2px 12px;border-radius:50px;font-size:11px;margin-top:8px;}
+
+/* TOC */
+.toc{background:var(--card);border-radius:var(--radius);padding:24px 20px;margin:24px 0;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid var(--border);}
+.toc h2{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--primary-dark);}
+.toc ol{padding-left:20px;}
+.toc li{padding:6px 0;font-size:14px;border-bottom:1px solid #f1f5f9;}
+.toc li:last-child{border:none;}
+.toc a{font-weight:500;}
+
+/* Section */
+.section{background:var(--card);border-radius:var(--radius);padding:28px 20px;margin:20px 0;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid var(--border);}
+.section h2{font-size:20px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.section h2 .emoji{font-size:24px;}
+.section .section-desc{font-size:13px;color:var(--text-sub);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+
+/* Subsection */
+.subsection{margin:20px 0;}
+.subsection h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--primary-dark);padding-left:12px;border-left:3px solid var(--primary);}
+
+/* Step */
+.step{display:flex;gap:12px;margin:12px 0;align-items:flex-start;}
+.step-num{flex-shrink:0;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;margin-top:2px;}
+.step-body{flex:1;font-size:14px;line-height:1.7;}
+.step-body strong{color:var(--primary-dark);}
+
+/* Tip / Warning / Note */
+.tip,.warning,.note{border-radius:10px;padding:14px 16px;margin:12px 0;font-size:13px;line-height:1.6;}
+.tip{background:#ecfdf5;border-left:4px solid var(--success);color:#065f46;}
+.warning{background:#fffbeb;border-left:4px solid var(--warning);color:#92400e;}
+.note{background:var(--primary-light);border-left:4px solid var(--primary);color:var(--primary-dark);}
+
+/* Table */
+.info-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+.info-table th{background:var(--bg);text-align:left;padding:10px 12px;font-weight:600;border-bottom:2px solid var(--border);color:var(--text-sub);font-size:12px;}
+.info-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+
+/* Screenshot placeholder */
+.screenshot{background:var(--bg);border:2px dashed var(--border);border-radius:10px;padding:32px 16px;text-align:center;color:var(--text-muted);font-size:13px;margin:12px 0;}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:600;}
+.badge-blue{background:var(--primary-light);color:var(--primary-dark);}
+.badge-green{background:#ecfdf5;color:#065f46;}
+.badge-amber{background:#fffbeb;color:#92400e;}
+.badge-red{background:#fef2f2;color:#991b1b;}
+
+/* Back to top */
+.back-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,0.15);text-decoration:none;z-index:50;}
+</style>
+</head>
+<body>
+
+<div class="manual-header">
+  <h1>🤖 アキナイAI</h1>
+  <p>管理画面 操作マニュアル</p>
+  <div class="ver">v1.0 ｜ 2026年3月</div>
+</div>
+
+<div class="manual-wrap">
+
+<!-- ===== 目次 ===== -->
+<div class="toc" id="top">
+  <h2>📖 目次</h2>
+  <ol>
+    <li><a href="#sec-login">ログイン方法</a></li>
+    <li><a href="#sec-orders">オーダー管理</a></li>
+    <li><a href="#sec-menu">メニュー管理</a></li>
+    <li><a href="#sec-customers">顧客管理</a></li>
+    <li><a href="#sec-sales">売上分析</a></li>
+    <li><a href="#sec-broadcast">配信管理</a></li>
+    <li><a href="#sec-aiusage">AI利用状況</a></li>
+    <li><a href="#sec-settings">設定</a></li>
+    <li><a href="#sec-daily">日常運用ガイド</a></li>
+    <li><a href="#sec-faq">よくある質問</a></li>
+  </ol>
+</div>
+
+<!-- ===== 1. ログイン ===== -->
+<div class="section" id="sec-login">
+  <h2><span class="emoji">🔐</span> 1. ログイン方法</h2>
+  <p class="section-desc">管理画面にアクセスしてログインするまでの手順です。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">ブラウザで <strong>https://app.akinai.allbrain.one/admin.html</strong> を開きます。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">パスワード入力画面が表示されます。事前にお伝えした <strong>管理者パスワード</strong> を入力してください。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">ログイン成功後、オーダー管理画面が表示されます。</div>
+  </div>
+
+  <div class="tip">💡 パスワードはブラウザに記憶させておくと便利です。パスワードの変更は「設定」タブから可能です。</div>
+</div>
+
+<!-- ===== 2. オーダー管理 ===== -->
+<div class="section" id="sec-orders">
+  <h2><span class="emoji">📋</span> 2. オーダー管理</h2>
+  <p class="section-desc">お客様からのLINE注文をリアルタイムで確認・管理するタブです。</p>
+
+  <div class="subsection">
+    <h3>画面の見方</h3>
+    <table class="info-table">
+      <tr><th>エリア</th><th>内容</th></tr>
+      <tr><td><strong>未提供の注文</strong></td><td>お客様が注文済みでまだ提供していない注文が表示されます。件数がバッジで表示されます。</td></tr>
+      <tr><td><strong>提供済み</strong></td><td>提供完了した注文の履歴が表示されます。</td></tr>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>注文を提供済みにする</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">未提供の注文カードに表示されている <strong>「提供完了」ボタン</strong> をタップします。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">注文が「提供済み」エリアに移動します。</div>
+    </div>
+  </div>
+
+  <div class="note">📌 注文はお客様がLINEから注文するとリアルタイムで表示されます。ページを開いたままにしておくと自動更新されます。</div>
+</div>
+
+<!-- ===== 3. メニュー管理 ===== -->
+<div class="section" id="sec-menu">
+  <h2><span class="emoji">📝</span> 3. メニュー管理</h2>
+  <p class="section-desc">メニューの追加・編集・売切れ設定を行うタブです。</p>
+
+  <div class="subsection">
+    <h3>メニューを新規追加する</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">右上の <strong>「＋ 新規追加」ボタン</strong> をタップします。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">フォームに以下の情報を入力します：</div>
+    </div>
+    <table class="info-table">
+      <tr><th>項目</th><th>説明</th><th>必須</th></tr>
+      <tr><td>メニューID</td><td>D001, F001 のように英数字で入力（D=ドリンク、F=フード）</td><td>✅</td></tr>
+      <tr><td>メニュー名</td><td>お客様に表示される名前</td><td>✅</td></tr>
+      <tr><td>価格</td><td>半角数字で入力（例：1500）</td><td>✅</td></tr>
+      <tr><td>カテゴリ</td><td>Drink または Food</td><td>✅</td></tr>
+      <tr><td>フレーバー</td><td>味の特徴（例：「シェリー、バニラ、リッチ」）</td><td>—</td></tr>
+      <tr><td>ペアリング</td><td>おすすめの組み合わせ（例：「ブルーチーズ」）</td><td>—</td></tr>
+      <tr><td>画像</td><td>メニュー写真をアップロード（2MB以下）</td><td>—</td></tr>
+      <tr><td>オプション</td><td>追加オプション（例：「大盛り:100,味玉:100」）</td><td>—</td></tr>
+      <tr><td>味覚パラメータ</td><td>塩味・甘味・酸味・苦味・コクを0〜10で設定。AIソムリエの相性判定に使用。</td><td>—</td></tr>
+    </table>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><strong>「保存」</strong> をタップして完了です。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>売切れにする / 戻す</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">メニュー一覧から対象メニューの <strong>「売切れ」トグル</strong> を切り替えます。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">売切れにすると、お客様のLINE注文画面でそのメニューが注文不可になります。</div>
+    </div>
+  </div>
+
+  <div class="warning">⚠️ 味覚パラメータ（塩味〜コク）が全て0のメニューは、AIソムリエの相性判定が正しく動作しません。新しいメニューを追加したら必ず設定してください。</div>
+</div>
+
+<!-- ===== 4. 顧客管理 ===== -->
+<div class="section" id="sec-customers">
+  <h2><span class="emoji">👥</span> 4. 顧客管理</h2>
+  <p class="section-desc">LINE友だち追加したお客様の情報を管理するタブです。</p>
+
+  <div class="subsection">
+    <h3>顧客セグメント</h3>
+    <table class="info-table">
+      <tr><th>セグメント</th><th>条件</th></tr>
+      <tr><td><span class="badge badge-blue">👥 全員</span></td><td>登録されている全顧客</td></tr>
+      <tr><td><span class="badge badge-amber">👑 VIP</span></td><td>来店回数・頻度が一定以上の優良顧客</td></tr>
+      <tr><td><span class="badge badge-green">✅ アクティブ</span></td><td>直近で来店があった顧客</td></tr>
+      <tr><td><span class="badge badge-red">💤 休眠</span></td><td>一定期間来店がない顧客</td></tr>
+      <tr><td><span class="badge badge-blue">🆕 新規</span></td><td>最近登録された顧客</td></tr>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>顧客を検索する</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">上部の <strong>検索ボックス</strong> に名前やタグを入力すると、リアルタイムで絞り込まれます。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>顧客詳細の確認</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">顧客カードをタップすると、そのお客様の <strong>来店回数・注文履歴・味覚傾向</strong> が確認できます。</div>
+    </div>
+  </div>
+
+  <div class="tip">💡 セグメントボタンで絞り込んでから配信管理タブに切り替えると、ターゲットを意識した配信が作りやすくなります。</div>
+</div>
+
+<!-- ===== 5. 売上分析 ===== -->
+<div class="section" id="sec-sales">
+  <h2><span class="emoji">📊</span> 5. 売上分析</h2>
+  <p class="section-desc">売上データをグラフやダッシュボードで確認するタブです。</p>
+
+  <div class="subsection">
+    <h3>期間フィルター</h3>
+    <table class="info-table">
+      <tr><th>ボタン</th><th>表示内容</th></tr>
+      <tr><td>全期間</td><td>すべてのデータ</td></tr>
+      <tr><td>今日</td><td>本日の売上</td></tr>
+      <tr><td>直近7日</td><td>過去1週間</td></tr>
+      <tr><td>直近30日</td><td>過去1ヶ月</td></tr>
+      <tr><td>直近3ヶ月</td><td>過去3ヶ月</td></tr>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>確認できる指標</h3>
+    <div class="step">
+      <div class="step-num">•</div>
+      <div class="step-body"><strong>総売上</strong>：期間内の売上合計金額</div>
+    </div>
+    <div class="step">
+      <div class="step-num">•</div>
+      <div class="step-body"><strong>注文件数</strong>：期間内の総注文数</div>
+    </div>
+    <div class="step">
+      <div class="step-num">•</div>
+      <div class="step-body"><strong>客単価</strong>：1注文あたりの平均金額</div>
+    </div>
+    <div class="step">
+      <div class="step-num">•</div>
+      <div class="step-body"><strong>リピート率</strong>：2回以上来店したお客様の割合</div>
+    </div>
+  </div>
+
+  <div class="tip">💡 毎週月曜に「直近7日」を確認する習慣をつけると、週次の変化に気付きやすくなります。</div>
+</div>
+
+<!-- ===== 6. 配信管理 ===== -->
+<div class="section" id="sec-broadcast">
+  <h2><span class="emoji">📣</span> 6. 配信管理</h2>
+  <p class="section-desc">お客様へのLINEメッセージ配信を作成・送信するタブです。</p>
+
+  <div class="subsection">
+    <h3>配信モード</h3>
+    <table class="info-table">
+      <tr><th>モード</th><th>内容</th></tr>
+      <tr><td><strong>✏️ フリー入力</strong></td><td>自由にメッセージを作成して送信します。</td></tr>
+      <tr><td><strong>📋 テンプレート</strong></td><td>事前に用意されたテンプレートをもとにメッセージを作成します。AIが顧客ごとにパーソナライズすることも可能です。</td></tr>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>フリー入力で配信する</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>配信対象セグメント</strong> を選択します（全員 / VIP / アクティブ / 休眠 / 新規）。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>メッセージ内容</strong> を入力します（最大500文字）。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">右側のプレビューで内容を確認し、<strong>「配信する」</strong> をタップします。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>テンプレート配信（AIパーソナライズ）</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>「📋 テンプレート」</strong> モードに切り替えます。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">テンプレートを選択します。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><strong>「🤖 AIでパーソナライズする」</strong> にチェックを入れると、AIがお客様ごとにメッセージをカスタマイズします。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body"><strong>「プレビューを作成」</strong> で内容を確認し、配信します。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>配信履歴</h3>
+    <div class="step">
+      <div class="step-num">•</div>
+      <div class="step-body">画面下部の <strong>「📜 配信履歴」</strong> で、過去の配信内容・送信日時・配信人数が確認できます。</div>
+    </div>
+  </div>
+
+  <div class="warning">⚠️ 配信は取り消しできません。送信前に必ずプレビューで内容を確認してください。</div>
+</div>
+
+<!-- ===== 7. AI利用状況 ===== -->
+<div class="section" id="sec-aiusage">
+  <h2><span class="emoji">🤖</span> 7. AI利用状況</h2>
+  <p class="section-desc">AIの利用回数・コスト・自動配信の状態を確認するタブです。</p>
+
+  <div class="subsection">
+    <h3>確認できる情報</h3>
+    <table class="info-table">
+      <tr><th>セクション</th><th>内容</th></tr>
+      <tr><td><strong>AI利用状況（今月）</strong></td><td>今月のAI呼び出し回数と推定コスト</td></tr>
+      <tr><td><strong>自動配信 ON/OFF</strong></td><td>AI自動配信の有効/無効を切り替え。配信時間の設定も可能。</td></tr>
+      <tr><td><strong>機能別内訳</strong></td><td>AIソムリエ・自動配信・パーソナライズ等の機能ごとの利用回数</td></tr>
+      <tr><td><strong>日別推移</strong></td><td>日ごとのAI利用数の推移グラフ</td></tr>
+      <tr><td><strong>施策効果</strong></td><td>配信によるリピート効果の分析</td></tr>
+      <tr><td><strong>自動配信シナリオ別の効果</strong></td><td>翌日お礼・7日後フォロー等のシナリオごとの効果比較</td></tr>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>自動配信のON/OFF</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>「自動配信」トグルボタン</strong> をタップしてON/OFFを切り替えます。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>「⏰ 配信時間」</strong> のプルダウンで、自動配信が実行される時間を設定します（デフォルト18:00）。</div>
+    </div>
+  </div>
+
+  <div class="tip">💡 自動配信をONにすると、来店翌日のお礼・7日後フォロー・30日後リマインド等をAIが自動で送信します。</div>
+</div>
+
+<!-- ===== 8. 設定 ===== -->
+<div class="section" id="sec-settings">
+  <h2><span class="emoji">⚙️</span> 8. 設定</h2>
+  <p class="section-desc">ショップ情報やAI動作設定を変更するタブです。</p>
+
+  <div class="subsection">
+    <h3>ショップ設定</h3>
+    <table class="info-table">
+      <tr><th>項目</th><th>内容</th></tr>
+      <tr><td><strong>ショップ名</strong></td><td>お客様画面のヘッダーやブラウザタブに表示される店舗名</td></tr>
+      <tr><td><strong>ショップアイコン</strong></td><td>ロゴ未設定時にヘッダーに表示される絵文字（例：🍷）</td></tr>
+      <tr><td><strong>ショップロゴ</strong></td><td>画像をアップロードすると、絵文字の代わりにロゴ画像が表示されます（2MB以下）</td></tr>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>ロゴをアップロードする</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>「ファイルを選択」</strong> から画像を選びます。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>「アップロード」</strong> ボタンをタップします。自動的に保存されます。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">削除する場合は <strong>「ロゴを削除」</strong> ボタンをタップします。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>その他の設定</h3>
+    <table class="info-table">
+      <tr><th>項目</th><th>内容</th></tr>
+      <tr><td><strong>テーマモード</strong></td><td>ライト / ダーク の切り替え</td></tr>
+      <tr><td><strong>VIP来店回数</strong></td><td>VIPと判定する来店回数の閾値</td></tr>
+      <tr><td><strong>VIP判定日数</strong></td><td>VIPと判定する期間の閾値</td></tr>
+      <tr><td><strong>AIプロンプト</strong></td><td>AIソムリエ・自動配信などのAI動作を制御するプロンプトの編集</td></tr>
+    </table>
+  </div>
+
+  <div class="note">📌 設定を変更したら、画面下部の <strong>「すべて保存」</strong> ボタンを必ずタップしてください。</div>
+</div>
+
+<!-- ===== 9. 日常運用ガイド ===== -->
+<div class="section" id="sec-daily">
+  <h2><span class="emoji">📅</span> 9. 日常運用ガイド</h2>
+  <p class="section-desc">営業中・営業後にやることのチェックリストです。</p>
+
+  <div class="subsection">
+    <h3>営業開始前</h3>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body">管理画面にログインし、<strong>メニュー管理タブ</strong> で本日の売切れ状況を更新する。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body">新メニューがあれば追加し、味覚パラメータを設定する。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>営業中</h3>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body"><strong>オーダー管理タブ</strong> を常時表示しておく。注文が入ったら内容を確認し、提供後に「提供完了」をタップ。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body">品切れが発生したら、すぐに <strong>メニュー管理</strong> で売切れに設定する。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body">初来店のお客様には <strong>「LINEのお友だち追加をお願いします」</strong> とお声がけ。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>営業終了後（週1回でもOK）</h3>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body"><strong>売上分析タブ</strong> で「直近7日」の売上・客単価・リピート率を確認する。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body"><strong>顧客管理タブ</strong> で「💤 休眠」のお客様がいないか確認する。</div>
+    </div>
+    <div class="step">
+      <div class="step-num">☐</div>
+      <div class="step-body">必要に応じて <strong>配信管理タブ</strong> からメッセージを配信する。</div>
+    </div>
+  </div>
+
+  <div class="tip">💡 自動配信をONにしておけば、お礼メッセージやフォローはAIが自動で行います。お店側は「LINEのお友だち追加を促す」ことに集中するだけでOKです。</div>
+</div>
+
+<!-- ===== 10. FAQ ===== -->
+<div class="section" id="sec-faq">
+  <h2><span class="emoji">❓</span> 10. よくある質問</h2>
+  <p class="section-desc">運用中によくある疑問と回答です。</p>
+
+  <div class="subsection">
+    <h3>Q. パスワードを忘れました</h3>
+    <div class="step">
+      <div class="step-num">A</div>
+      <div class="step-body">サポート（info@allbrain.one）までご連絡ください。パスワードをリセットいたします。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Q. 注文が表示されません</h3>
+    <div class="step">
+      <div class="step-num">A</div>
+      <div class="step-body">ブラウザを再読み込み（リロード）してください。それでも表示されない場合は、LINEのお友だち追加とLIFFアプリの連携を確認してください。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Q. AIソムリエの提案がおかしいです</h3>
+    <div class="step">
+      <div class="step-num">A</div>
+      <div class="step-body">メニューの <strong>味覚パラメータ</strong> が正しく設定されているか確認してください。全て0のメニューがあると正確な判定ができません。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Q. メニュー画像が表示されません</h3>
+    <div class="step">
+      <div class="step-num">A</div>
+      <div class="step-body">画像が2MB以下であることを確認してください。JPEG・PNG形式を推奨します。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Q. 配信したメッセージを取り消したいです</h3>
+    <div class="step">
+      <div class="step-num">A</div>
+      <div class="step-body">LINE Push Messageは送信後の取り消しができません。送信前に必ずプレビューで確認してください。</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Q. スマホから管理画面は使えますか？</h3>
+    <div class="step">
+      <div class="step-num">A</div>
+      <div class="step-body">はい。スマホのブラウザから同じURLにアクセスして利用できます。ホーム画面に追加すると便利です。</div>
+    </div>
+  </div>
+
+  <div class="note">📌 その他のご質問は <strong>info@allbrain.one</strong> までお気軽にお問い合わせください。</div>
+</div>
+
+</div><!-- /manual-wrap -->
+
+<a href="#top" class="back-top">↑</a>
+
+</body>
+</html>
