@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アキナイAI 新店舗セットアップガイド</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--primary:#3b82f6;--primary-dark:#1e40af;--primary-light:#dbeafe;--text:#1e293b;--text-sub:#475569;--text-muted:#94a3b8;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--radius:12px;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans JP',sans-serif;color:var(--text);background:var(--bg);line-height:1.8;}
+a{color:var(--primary);text-decoration:none;}
+code{background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:13px;font-family:'Courier New',monospace;color:#be185d;word-break:break-all;}
+pre{background:#1e293b;color:#e2e8f0;padding:16px;border-radius:10px;overflow-x:auto;font-size:13px;line-height:1.6;margin:12px 0;}
+pre code{background:none;color:inherit;padding:0;}
+
+.wrap{max-width:720px;margin:0 auto;padding:0 20px 80px;}
+.header{background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:48px 20px 40px;text-align:center;}
+.header h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+.header p{font-size:13px;opacity:0.8;}
+.header .ver{display:inline-block;background:rgba(255,255,255,0.2);padding:2px 12px;border-radius:50px;font-size:11px;margin-top:8px;}
+
+.toc{background:var(--card);border-radius:var(--radius);padding:24px 20px;margin:24px 0;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid var(--border);}
+.toc h2{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--primary-dark);}
+.toc ol{padding-left:20px;}
+.toc li{padding:4px 0;font-size:14px;}
+
+.section{background:var(--card);border-radius:var(--radius);padding:28px 20px;margin:20px 0;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid var(--border);}
+.section h2{font-size:18px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.section .desc{font-size:13px;color:var(--text-sub);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.section h3{font-size:15px;font-weight:700;margin:20px 0 8px;color:var(--primary-dark);padding-left:12px;border-left:3px solid var(--primary);}
+
+.step{display:flex;gap:12px;margin:10px 0;align-items:flex-start;}
+.step-num{flex-shrink:0;width:26px;height:26px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px;}
+.step-body{flex:1;font-size:14px;line-height:1.7;}
+.step-body strong{color:var(--primary-dark);}
+
+.tip,.warning,.note,.danger{border-radius:10px;padding:14px 16px;margin:12px 0;font-size:13px;line-height:1.6;}
+.tip{background:#ecfdf5;border-left:4px solid var(--success);color:#065f46;}
+.warning{background:#fffbeb;border-left:4px solid var(--warning);color:#92400e;}
+.note{background:var(--primary-light);border-left:4px solid var(--primary);color:var(--primary-dark);}
+.danger{background:#fef2f2;border-left:4px solid var(--danger);color:#991b1b;}
+
+.checklist{background:#f8fafc;border-radius:10px;padding:16px;margin:12px 0;}
+.checklist label{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:14px;cursor:pointer;}
+.checklist input[type="checkbox"]{margin-top:4px;width:18px;height:18px;flex-shrink:0;}
+
+.time-badge{display:inline-block;background:var(--primary-light);color:var(--primary-dark);padding:2px 10px;border-radius:50px;font-size:11px;font-weight:600;margin-left:8px;}
+
+.back-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,0.15);text-decoration:none;z-index:50;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🛠 新店舗セットアップガイド</h1>
+  <p>アキナイAI 導入作業手順書（社内用）</p>
+  <div class="ver">v1.0 ｜ 2026年3月</div>
+</div>
+
+<div class="wrap">
+
+<div class="toc" id="top">
+  <h2>📖 目次</h2>
+  <ol>
+    <li><a href="#sec0">事前準備・ヒアリング</a><span class="time-badge">30分</span></li>
+    <li><a href="#sec1">Supabase プロジェクト作成</a><span class="time-badge">20分</span></li>
+    <li><a href="#sec2">テーブル・初期データ作成</a><span class="time-badge">15分</span></li>
+    <li><a href="#sec3">Edge Function デプロイ</a><span class="time-badge">10分</span></li>
+    <li><a href="#sec4">Storage バケット作成</a><span class="time-badge">5分</span></li>
+    <li><a href="#sec5">LINE公式アカウント作成</a><span class="time-badge">15分</span></li>
+    <li><a href="#sec6">LINE Developers 設定</a><span class="time-badge">20分</span></li>
+    <li><a href="#sec7">GitHub リポジトリ作成・デプロイ</a><span class="time-badge">15分</span></li>
+    <li><a href="#sec8">DNS・カスタムドメイン設定</a><span class="time-badge">10分</span></li>
+    <li><a href="#sec9">接続テスト・動作確認</a><span class="time-badge">15分</span></li>
+    <li><a href="#sec10">メニュー登録・初期設定</a><span class="time-badge">30分〜</span></li>
+    <li><a href="#secA">付録：SQLテンプレート</a></li>
+    <li><a href="#secB">付録：環境変数一覧</a></li>
+  </ol>
+  <div class="note" style="margin-top:12px;">📌 合計所要時間：約3〜4時間（メニュー登録量による）</div>
+</div>
+
+<!-- ===== 0. 事前準備 ===== -->
+<div class="section" id="sec0">
+  <h2>📋 0. 事前準備・ヒアリング</h2>
+  <p class="desc">店舗オーナーから事前に取得する情報です。</p>
+
+  <div class="checklist">
+    <label><input type="checkbox"> 店舗名（日本語）</label>
+    <label><input type="checkbox"> 店舗アイコン絵文字（例：🍷🍺🍶）</label>
+    <label><input type="checkbox"> ロゴ画像（あれば。PNG/JPG、2MB以下）</label>
+    <label><input type="checkbox"> メニュー一覧（名前・価格・カテゴリ・説明）</label>
+    <label><input type="checkbox"> メニュー写真（あれば）</label>
+    <label><input type="checkbox"> LINE公式アカウント（既存 or 新規作成）</label>
+    <label><input type="checkbox"> 希望ドメイン（例：app.barname.allbrain.one）</label>
+    <label><input type="checkbox"> 管理画面パスワード（店舗側で決めてもらう）</label>
+    <label><input type="checkbox"> テーマモード希望（light / dark）</label>
+  </div>
+</div>
+
+<!-- ===== 1. Supabase ===== -->
+<div class="section" id="sec1">
+  <h2>🗄 1. Supabase プロジェクト作成</h2>
+  <p class="desc">店舗専用のSupabaseプロジェクトを作成します。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body"><a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a> を開き、<strong>「New Project」</strong> をクリック。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">以下を入力：
+      <br>・Name: <code>akinai-店舗名-英語</code>（例：<code>akinai-bar-sakura</code>）
+      <br>・Database Password: 生成して <strong>必ず控える</strong>
+      <br>・Region: <code>Northeast Asia (Tokyo)</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">作成完了後、<strong>Settings → API</strong> から以下を控える：
+      <br>・<code>Project URL</code>（例：https://xxxxxx.supabase.co）
+      <br>・<code>anon public key</code>
+      <br>・<code>service_role key</code>（秘密鍵。外部に公開しない）
+    </div>
+  </div>
+
+  <div class="danger">🔒 service_role key は絶対に外部公開しないこと。Edge Functionの環境変数としてのみ使用する。</div>
+</div>
+
+<!-- ===== 2. テーブル作成 ===== -->
+<div class="section" id="sec2">
+  <h2>🏗 2. テーブル・初期データ作成</h2>
+  <p class="desc">SQL Editorで一括実行します。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">Supabase Dashboard → <strong>SQL Editor</strong> を開く。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body"><a href="#secA">付録A：SQLテンプレート</a> のSQLを <strong>全文コピーして貼り付け</strong>、実行する。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">Table Editorでテーブルが作成されていることを確認：
+      <br><code>menu_items</code> <code>orders</code> <code>customers</code> <code>config</code> <code>prompts</code> <code>broadcast_log</code> <code>ai_usage_log</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body"><code>config</code> テーブルを開き、以下の値を店舗に合わせて編集：
+      <br>・<code>SHOP_NAME</code> → 店舗名
+      <br>・<code>SHOP_ICON</code> → 絵文字
+      <br>・<code>ADMIN_PASSWORD</code> → 管理画面パスワード
+    </div>
+  </div>
+
+  <div class="tip">💡 SQLテンプレートにはデフォルトの config 値と prompts が含まれているので、実行するだけで初期データも入ります。</div>
+</div>
+
+<!-- ===== 3. Edge Function ===== -->
+<div class="section" id="sec3">
+  <h2>⚡ 3. Edge Function デプロイ</h2>
+  <p class="desc">APIサーバーとなるEdge Functionをデプロイします。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">テンプレートの Edge Function ソースを用意。
+      <br>場所：<code>C:\Users\6kimu\akinai-ai-template\supabase\functions\api\index.ts</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">ターミナルで Supabase CLI にログイン：
+<pre><code>npx supabase login
+npx supabase link --project-ref 【Project ID】</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">環境変数を設定：
+<pre><code>npx supabase secrets set SUPABASE_URL=【Project URL】
+npx supabase secrets set SERVICE_ROLE_KEY=【service_role key】
+npx supabase secrets set GEMINI_API_KEY=【Gemini API Key】
+npx supabase secrets set CHANNEL_ACCESS_TOKEN=【LINE Channel Access Token】
+npx supabase secrets set LIFF_ID=【LIFF ID】</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">デプロイ：
+<pre><code>npx supabase functions deploy api --no-verify-jwt</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">デプロイ後のURL（<code>https://xxxxxx.supabase.co/functions/v1/api</code>）を控える。これが <strong>GAS_API_URL</strong> になる。</div>
+  </div>
+
+  <div class="warning">⚠️ <code>--no-verify-jwt</code> を忘れるとフロントエンドからのリクエストが401エラーになる。</div>
+</div>
+
+<!-- ===== 4. Storage ===== -->
+<div class="section" id="sec4">
+  <h2>📦 4. Storage バケット作成</h2>
+  <p class="desc">メニュー画像・ロゴ画像の保存先を作成します。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">Supabase Dashboard → <strong>Storage</strong> → <strong>「New Bucket」</strong></div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">バケット名：<code>menu-images</code>、<strong>Public bucket</strong> を ON にする。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">バケット内に <strong><code>items</code></strong> フォルダを作成（メニュー画像格納先）。</div>
+  </div>
+
+  <div class="note">📌 RLS（Row Level Security）はPublicバケットなので設定不要。画像URLは <code>https://xxxxxx.supabase.co/storage/v1/object/public/menu-images/items/ファイル名</code> の形式になる。</div>
+</div>
+
+<!-- ===== 5. LINE公式アカウント ===== -->
+<div class="section" id="sec5">
+  <h2>💚 5. LINE公式アカウント作成</h2>
+  <p class="desc">店舗専用のLINE公式アカウントを作成します。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body"><a href="https://www.linebiz.com/jp/entry/" target="_blank">LINE for Business</a> から新規アカウントを作成。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">アカウント名は <strong>店舗名</strong> を設定。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">プロフィール画像に店舗ロゴを設定。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body"><strong>LINE Official Account Manager</strong> → 設定 → <strong>応答設定</strong>：
+      <br>・応答モード：<strong>Bot</strong>
+      <br>・Webhook：<strong>ON</strong>
+      <br>・自動応答メッセージ：<strong>OFF</strong>
+      <br>・あいさつメッセージ：任意（カスタマイズ推奨）
+    </div>
+  </div>
+
+  <div class="tip">💡 既存のLINE公式アカウントがあればそれを利用してもOK。応答設定だけ変更する。</div>
+</div>
+
+<!-- ===== 6. LINE Developers ===== -->
+<div class="section" id="sec6">
+  <h2>🔧 6. LINE Developers 設定</h2>
+  <p class="desc">Messaging APIチャネルとLIFFアプリを作成します。</p>
+
+  <h3>6-1. Messaging API チャネル</h3>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body"><a href="https://developers.line.biz/" target="_blank">LINE Developers</a> → プロバイダー選択 → <strong>「チャネル作成」→「Messaging API」</strong></div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">チャネル名：店舗名、チャネル説明：適当に入力。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body"><strong>「Messaging API」タブ</strong> → <strong>Channel access token</strong> を発行して控える。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body"><strong>Webhook URL</strong> を設定：
+<pre><code>https://【Supabase Project URL】/functions/v1/api</code></pre>
+      Webhookの利用を <strong>ON</strong> にする。
+    </div>
+  </div>
+
+  <h3>6-2. LIFFアプリ作成</h3>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">同じチャネル内の <strong>「LIFF」タブ</strong> → <strong>「追加」</strong></div>
+  </div>
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">設定値：
+      <br>・Size：<strong>Full</strong>
+      <br>・Endpoint URL：<code>https://app.【店舗ドメイン】</code>（後で設定するカスタムドメイン）
+      <br>・Scope：<strong>profile</strong> にチェック
+      <br>・Bot link feature：<strong>Aggressive</strong>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">作成後に表示される <strong>LIFF ID</strong> を控える。</div>
+  </div>
+
+  <div class="danger">🔒 Channel access token はEdge Functionの環境変数としてのみ使用。コードにハードコードしない。</div>
+</div>
+
+<!-- ===== 7. GitHub ===== -->
+<div class="section" id="sec7">
+  <h2>📂 7. GitHub リポジトリ作成・デプロイ</h2>
+  <p class="desc">テンプレートから店舗用リポジトリを作成し、GitHub Pagesでデプロイします。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">テンプレートリポジトリ <code>akinai-ai-template</code> を <strong>「Use this template」→「Create a new repository」</strong> で複製。
+      <br>リポジトリ名：<code>akinai-【店舗名英語】</code>（例：<code>akinai-bar-sakura</code>）
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body"><strong>script.js</strong> の以下2箇所を書き換え：
+<pre><code>var GAS_API_URL = "https://【Supabase URL】/functions/v1/api";
+var MY_LIFF_ID = "【LIFF ID】";</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body"><strong>admin.html</strong> の API URL も同様に書き換え：
+<pre><code>var GAS_API_URL = "https://【Supabase URL】/functions/v1/api";</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body"><strong>config.js</strong> が存在する場合、同様に URL を書き換え。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">GitHub → <strong>Settings → Pages</strong> → Source: <strong>Deploy from a branch</strong>、Branch: <strong>main</strong> / <strong>root</strong> を選択 → Save。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">数分後に <code>https://【username】.github.io/akinai-【店舗名】/</code> でアクセス可能になる。</div>
+  </div>
+
+  <div class="tip">💡 テンプレートリポジトリを事前に作成しておくと、毎回の作業は「複製 → URL2箇所書き換え → push」だけで済む。</div>
+</div>
+
+<!-- ===== 8. DNS ===== -->
+<div class="section" id="sec8">
+  <h2>🌐 8. DNS・カスタムドメイン設定</h2>
+  <p class="desc">店舗専用のサブドメインを設定します。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body"><strong>Squarespace DNS</strong>（またはDNS管理画面）を開く。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">CNAME レコードを追加：
+<pre><code>Host: app.【店舗名】
+Type: CNAME
+Value: 【GitHubユーザー名】.github.io</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">GitHub → リポジトリの <strong>Settings → Pages → Custom domain</strong> に <code>app.【店舗名】.allbrain.one</code> を入力。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body"><strong>Enforce HTTPS</strong> にチェック（DNS反映後に有効化される。最大30分程度）。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">LINE Developers → LIFF の Endpoint URL を <code>https://app.【店舗名】.allbrain.one</code> に更新。</div>
+  </div>
+
+  <div class="warning">⚠️ DNS反映には最大24時間かかる場合がある（通常は数分〜30分）。HTTPS有効化はDNS反映後にしかできない。</div>
+</div>
+
+<!-- ===== 9. テスト ===== -->
+<div class="section" id="sec9">
+  <h2>✅ 9. 接続テスト・動作確認</h2>
+  <p class="desc">全体が正しく連携しているか確認します。</p>
+
+  <div class="checklist">
+    <label><input type="checkbox"> <strong>管理画面ログイン</strong>：admin.html にアクセスしてパスワードでログインできる</label>
+    <label><input type="checkbox"> <strong>メニュー表示</strong>：管理画面のメニュー管理タブにデータが表示される</label>
+    <label><input type="checkbox"> <strong>LINE友だち追加</strong>：QRコードから友だち追加 → LIFFアプリが開く</label>
+    <label><input type="checkbox"> <strong>注文テスト</strong>：LIFFアプリからメニューを注文 → 管理画面のオーダーに表示される</label>
+    <label><input type="checkbox"> <strong>提供完了</strong>：管理画面で「提供完了」→ 提供済みに移動する</label>
+    <label><input type="checkbox"> <strong>AIソムリエ</strong>：「おすすめを聞く」「ソムリエに相談」「みんなの人気メニュー」が動作する</label>
+    <label><input type="checkbox"> <strong>顧客管理</strong>：注文したユーザーが顧客一覧に表示される</label>
+    <label><input type="checkbox"> <strong>売上分析</strong>：売上データがダッシュボードに反映される</label>
+    <label><input type="checkbox"> <strong>配信テスト</strong>：配信管理からテストメッセージを自分宛に送信 → LINEに届く</label>
+    <label><input type="checkbox"> <strong>設定変更</strong>：ショップ名・アイコンを変更 → アプリ側に反映される</label>
+    <label><input type="checkbox"> <strong>Webhook確認</strong>：LINE Developers → Webhook URL → 「Verify」ボタンで Success が返る</label>
+  </div>
+
+  <div class="danger">🚨 動作確認が全て完了するまで店舗への引き渡しは行わないこと。</div>
+</div>
+
+<!-- ===== 10. メニュー登録 ===== -->
+<div class="section" id="sec10">
+  <h2>🍽 10. メニュー登録・初期設定</h2>
+  <p class="desc">ヒアリング内容をもとにメニューと各種設定を登録します。</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body"><strong>管理画面 → メニュー管理</strong> から、ヒアリングしたメニューを1つずつ登録。
+      <br>・メニューID規則：ドリンク=<code>D001〜</code>、フード=<code>F001〜</code>
+      <br>・味覚パラメータは必ず設定する（0のままにしない）
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body"><strong>設定タブ</strong> で以下を確認・調整：
+      <br>・ショップ名 / アイコン / ロゴ
+      <br>・テーマモード
+      <br>・VIP閾値（来店回数・期間）
+      <br>・AIプロンプト（店舗の雰囲気に合わせてカスタマイズ）
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body"><strong>AI利用状況タブ</strong> → 自動配信を <strong>ON</strong> にし、配信時間を設定。</div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">店舗オーナーに以下を納品：
+      <br>・管理画面URL
+      <br>・管理画面パスワード
+      <br>・操作マニュアルURL（<code>/manual.html</code>）
+      <br>・LINE公式アカウントのQRコード
+      <br>・卓上POP用QRコード画像
+    </div>
+  </div>
+
+  <div class="tip">💡 メニュー数が多い場合は、CSVからのバルクインポートSQLを使うと効率的（付録A参照）。</div>
+</div>
+
+<!-- ===== 付録A: SQL ===== -->
+<div class="section" id="secA">
+  <h2>📎 付録A：SQLテンプレート</h2>
+  <p class="desc">Supabase SQL Editorにコピペして実行するSQL全文です。</p>
+
+<pre><code>-- ===========================
+-- アキナイAI テーブル作成SQL
+-- ===========================
+
+-- 1. menu_items
+CREATE TABLE IF NOT EXISTS menu_items (
+  id SERIAL PRIMARY KEY,
+  item_id TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  price INTEGER NOT NULL DEFAULT 0,
+  category TEXT NOT NULL DEFAULT 'Drink',
+  flavor_profile TEXT DEFAULT '',
+  pairing_food TEXT DEFAULT '',
+  is_active BOOLEAN DEFAULT true,
+  is_soldout BOOLEAN DEFAULT false,
+  image_url TEXT DEFAULT '',
+  p_salty INTEGER DEFAULT 0,
+  p_sweet INTEGER DEFAULT 0,
+  p_sour INTEGER DEFAULT 0,
+  p_bitter INTEGER DEFAULT 0,
+  p_rich INTEGER DEFAULT 0,
+  options TEXT DEFAULT '',
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. orders
+CREATE TABLE IF NOT EXISTS orders (
+  id SERIAL PRIMARY KEY,
+  order_id TEXT NOT NULL,
+  line_user_id TEXT NOT NULL,
+  user_name TEXT DEFAULT '',
+  item_id TEXT NOT NULL,
+  item_name TEXT NOT NULL,
+  price INTEGER DEFAULT 0,
+  quantity INTEGER DEFAULT 1,
+  options TEXT DEFAULT '',
+  status TEXT DEFAULT 'pending',
+  table_id TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  paid BOOLEAN DEFAULT false
+);
+
+-- 3. customers
+CREATE TABLE IF NOT EXISTS customers (
+  id SERIAL PRIMARY KEY,
+  line_user_id TEXT UNIQUE NOT NULL,
+  display_name TEXT DEFAULT '',
+  picture_url TEXT DEFAULT '',
+  visit_count INTEGER DEFAULT 0,
+  last_visit TIMESTAMPTZ,
+  first_visit TIMESTAMPTZ DEFAULT NOW(),
+  total_spent INTEGER DEFAULT 0,
+  tags TEXT DEFAULT '',
+  memo TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. config
+CREATE TABLE IF NOT EXISTS config (
+  id SERIAL PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  value TEXT DEFAULT ''
+);
+
+-- 5. prompts
+CREATE TABLE IF NOT EXISTS prompts (
+  id SERIAL PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  value TEXT DEFAULT ''
+);
+
+-- 6. broadcast_log
+CREATE TABLE IF NOT EXISTS broadcast_log (
+  id SERIAL PRIMARY KEY,
+  segment TEXT DEFAULT 'all',
+  message TEXT DEFAULT '',
+  sent_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. ai_usage_log
+CREATE TABLE IF NOT EXISTS ai_usage_log (
+  id SERIAL PRIMARY KEY,
+  action TEXT NOT NULL,
+  user_id TEXT DEFAULT '',
+  tokens_used INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ===========================
+-- 初期データ: config
+-- ===========================
+INSERT INTO config (key, value) VALUES
+  ('SHOP_NAME', '【店舗名を入力】'),
+  ('SHOP_ICON', '🍷'),
+  ('SHOP_LOGO_URL', ''),
+  ('THEME_MODE', 'dark'),
+  ('ADMIN_PASSWORD', '【パスワードを入力】'),
+  ('GEMINI_MODEL', 'gemini-2.0-flash'),
+  ('VIP_COUNT_THRESHOLD', '5'),
+  ('VIP_DAYS_THRESHOLD', '90'),
+  ('AUTO_BROADCAST_ENABLED', 'false'),
+  ('AUTO_BROADCAST_HOUR', '18')
+ON CONFLICT (key) DO NOTHING;
+
+-- ===========================
+-- 初期データ: prompts
+-- ===========================
+INSERT INTO prompts (key, value) VALUES
+  ('AI_RECOMMENDATION', 'あなたはお客様の好みを熟知したAIソムリエです。過去の注文履歴と味覚傾向をもとに、最適なメニューを1つ提案してください。提案理由も簡潔に添えてください。'),
+  ('AI_CONSULT', 'あなたはフレンドリーなAIソムリエです。お客様の今の気分や好みを聞いて、最適なメニューを提案してください。'),
+  ('AI_BROADCAST', 'あなたは飲食店のマーケティングAIです。お客様の来店履歴と好みに基づいて、再来店を促す親しみやすいメッセージを作成してください。'),
+  ('AI_PERSONALIZE', 'このメッセージをお客様の好みに合わせてパーソナライズしてください。元のメッセージの意図は保ちつつ、お客様が親しみを感じる表現にしてください。')
+ON CONFLICT (key) DO NOTHING;
+</code></pre>
+
+  <div class="warning">⚠️ 【店舗名を入力】【パスワードを入力】の2箇所は必ず書き換えてから実行すること。</div>
+</div>
+
+<!-- ===== 付録B: 環境変数 ===== -->
+<div class="section" id="secB">
+  <h2>📎 付録B：環境変数一覧</h2>
+  <p class="desc">各店舗で管理が必要な環境変数・キーの一覧です。</p>
+
+  <h3>Supabase Edge Function 環境変数</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;">
+    <tr style="background:#f1f5f9;"><th style="padding:10px;text-align:left;border-bottom:2px solid var(--border);">変数名</th><th style="padding:10px;text-align:left;border-bottom:2px solid var(--border);">取得元</th></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>SUPABASE_URL</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">Supabase → Settings → API → Project URL</td></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>SERVICE_ROLE_KEY</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">Supabase → Settings → API → service_role key</td></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>GEMINI_API_KEY</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">Google AI Studio で発行</td></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>CHANNEL_ACCESS_TOKEN</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">LINE Developers → Messaging API → Channel access token</td></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>LIFF_ID</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">LINE Developers → LIFF → LIFF ID</td></tr>
+  </table>
+
+  <h3>フロントエンド（script.js / admin.html）</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;">
+    <tr style="background:#f1f5f9;"><th style="padding:10px;text-align:left;border-bottom:2px solid var(--border);">変数</th><th style="padding:10px;text-align:left;border-bottom:2px solid var(--border);">説明</th></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>GAS_API_URL</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">Supabase Edge FunctionのURL（<code>https://xxxx.supabase.co/functions/v1/api</code>）</td></tr>
+    <tr><td style="padding:8px;border-bottom:1px solid #f1f5f9;"><code>MY_LIFF_ID</code></td><td style="padding:8px;border-bottom:1px solid #f1f5f9;">LIFF ID（script.js 内のみ）</td></tr>
+  </table>
+
+  <h3>店舗情報管理シート</h3>
+  <div class="note">📌 店舗ごとの環境変数・URL・パスワードは、社内の <strong>Google スプレッドシート「店舗管理台帳」</strong> に記録して一元管理すること。</div>
+</div>
+
+</div><!-- /wrap -->
+
+<a href="#top" class="back-top">↑</a>
+
+</body>
+</html>
