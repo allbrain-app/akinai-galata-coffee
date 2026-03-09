@@ -1680,14 +1680,14 @@ function requestBill() {
       } else {
         btn.disabled = false;
         btn.textContent = "🙋 会計をお願いする";
-        alert("エラーが発生しました");
+        showToast("エラーが発生しました");
       }
     })
     .catch(function(e) {
       console.error("requestBill error:", e);
       btn.disabled = false;
       btn.textContent = "🙋 会計をお願いする";
-      alert("通信エラーが発生しました");
+      showToast("通信エラーが発生しました");
     });
 }
 
