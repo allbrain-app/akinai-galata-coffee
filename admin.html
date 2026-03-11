@@ -321,6 +321,8 @@
   <button class="tab-btn" onclick="switchTab('broadcast')">📣 配信管理</button>
   <button class="tab-btn" onclick="switchTab('aiusage')">🤖 AI利用状況</button>
   <button class="tab-btn" onclick="switchTab('settings')">⚙️ 設定</button>
+    <button class="tab-btn" onclick="switchTab('plan')">💎 プラン</button>
+
 </div>
 
 <!-- ======== オーダータブ ======== -->
@@ -585,6 +587,18 @@
 
 </div>
 
+<!-- ======== プランタブ ======== -->
+<div class="tab-panel" id="panel-plan">
+  <div class="section-label">💎 現在のプラン</div>
+  <div id="plan-current" style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:20px; margin-bottom:20px; box-shadow:var(--shadow); text-align:center;">
+    <div style="font-size:13px; color:var(--text-muted);">読み込み中...</div>
+  </div>
+  <div class="section-label">📊 プラン比較</div>
+  <div id="plan-comparison"></div>
+  <div id="plan-usage" style="margin-top:20px;"></div>
+</div>
+
+
 <!-- ======== メニュー編集モーダル ======== -->
 <div class="modal-overlay" id="menuFormModal">
   <div class="modal-box">
@@ -742,6 +756,7 @@
 </div>
 
 <script src="config.js"></script>
+  <script src="plan-config.js"></script>
 <script>
 var currentTab = "orders";
 var previousOrderIds = new Set();
@@ -753,6 +768,9 @@ var deleteTargetId = "";
 var orderInterval = null;
 var allCustomers = [];
 var currentCustomerId = "";
+var currentPlan = "light";
+var planBroadcastCount = 0;
+var planBroadcastLimit = 30;
 
 window.onload = function() {
   if (typeof GAS_API_URL === "undefined") { alert("config.js error"); return; }
@@ -762,9 +780,9 @@ window.onload = function() {
   }
 };
 
-var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings"];
+var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings", "plan"];
 
-var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings"];
+var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings", "plan"];
 
 function switchTab(tab) {
   currentTab = tab;
@@ -790,6 +808,7 @@ function switchTab(tab) {
   if (tab === "broadcast") loadBroadcastTab();
   if (tab === "aiusage") { loadAiUsage(); loadCampaignEffect(); loadAutoBroadcastStatus(); }
   if (tab === "settings") loadSettings();
+  if (tab === "plan") loadPlanTab();
 }
 
 
@@ -2491,6 +2510,155 @@ function saveAutoBroadcastHour() {
     }
   })
   .catch(function(e) { console.error("Save hour error:", e); });
+}
+// ============================================================
+// プランタブ
+// ============================================================
+function loadPlanTab() {
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({action: "getPlan"})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.status === "success") {
+      currentPlan = d.plan || "light";
+      planBroadcastCount = d.broadcastCount || 0;
+      planBroadcastLimit = d.broadcastLimit || 30;
+      renderPlanTab();
+    }
+  })
+  .catch(function(e) { console.error("loadPlanTab error:", e); });
+}
+
+function renderPlanTab() {
+  var cfg = PLAN_CONFIG[currentPlan];
+
+  // 現在のプラン表示
+  var currentEl = document.getElementById("plan-current");
+  var usageHtml = "";
+  if (planBroadcastLimit < 999999) {
+    var pct = planBroadcastLimit > 0 ? Math.round(planBroadcastCount / planBroadcastLimit * 100) : 0;
+    var barColor = pct >= 80 ? "var(--danger)" : pct >= 50 ? "var(--warning)" : "var(--success)";
+    usageHtml =
+      '<div style="margin-top:16px; text-align:left; max-width:300px; margin-left:auto; margin-right:auto;">' +
+      '<div style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">AI自動配信（今月）</div>' +
+      '<div style="display:flex; align-items:center; gap:8px;">' +
+      '<div style="flex:1; background:var(--border-light); border-radius:6px; height:8px; overflow:hidden;">' +
+      '<div style="background:' + barColor + '; height:100%; width:' + pct + '%; border-radius:6px;"></div>' +
+      '</div>' +
+      '<span style="font-size:13px; font-weight:600;">' + planBroadcastCount + ' / ' + planBroadcastLimit + '</span>' +
+      '</div></div>';
+  } else {
+    usageHtml = '<div style="font-size:13px; color:var(--success); margin-top:12px;">AI自動配信: 無制限 ✓</div>';
+  }
+
+  currentEl.innerHTML =
+    '<div style="font-size:32px; margin-bottom:8px;">💎</div>' +
+    '<div style="font-size:22px; font-weight:700;">' + cfg.name + 'プラン</div>' +
+    '<div style="font-size:28px; font-weight:700; color:var(--primary); margin:8px 0;">¥' + cfg.price.toLocaleString() + '<span style="font-size:14px; font-weight:400;">/月（税抜）</span></div>' +
+    usageHtml;
+
+  // プラン比較カード
+  var plans = ["light", "standard", "premium"];
+  var features = [
+    { key: "line_order", label: "LINE注文・メニュー管理", all: true },
+    { key: "customer", label: "顧客管理", all: true },
+    { key: "sommelier", label: "AIソムリエ", all: true },
+    { key: "auto_msg", label: "AI自動配信", all: true, custom: true },
+    { key: "sales", label: "売上分析", all: true },
+    { key: "taste", label: "味覚診断", all: true },
+    { key: "shareImage", label: "味覚シェア画像生成" },
+    { key: "monthlyReport", label: "月次レポート" },
+    { key: "dedicatedSupport", label: "専任サポート" }
+  ];
+
+  var html = '<div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:8px;">';
+  plans.forEach(function(planId) {
+    var p = PLAN_CONFIG[planId];
+    var isCurrent = planId === currentPlan;
+    var borderStyle = isCurrent ? "2px solid var(--primary)" : "1px solid var(--border-color)";
+
+    html += '<div style="min-width:260px; flex:1; flex-shrink:0; background:var(--card-bg); border:' + borderStyle + '; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); position:relative;">';
+
+    if (planId === "standard") {
+      html += '<div style="background:var(--primary); color:#fff; text-align:center; padding:4px 12px; border-radius:8px; font-size:11px; font-weight:700; margin-bottom:12px;">おすすめ</div>';
+    }
+
+    html += '<div style="text-align:center;">';
+    html += '<div style="font-size:16px; font-weight:700;">' + p.name + '</div>';
+    html += '<div style="font-size:24px; font-weight:700; color:var(--primary); margin:8px 0;">¥' + p.price.toLocaleString() + '<span style="font-size:12px; font-weight:400;">/月</span></div>';
+    html += '</div>';
+
+    html += '<div style="margin:16px 0;">';
+    features.forEach(function(f) {
+      var available = false;
+      if (f.all) {
+        available = true;
+      } else {
+        available = !!p[f.key];
+      }
+
+      var label = f.label;
+      if (f.custom && f.key === "auto_msg") {
+        label = "AI自動配信（" + (p.autoMsgLimit === Infinity ? "無制限" : "月" + p.autoMsgLimit + "件") + "）";
+      }
+
+      var style = available
+        ? "padding:6px 0; font-size:13px; display:flex; align-items:center; gap:6px;"
+        : "padding:6px 0; font-size:13px; display:flex; align-items:center; gap:6px; color:var(--text-muted); text-decoration:line-through; opacity:0.5;";
+      var icon = available ? "✓" : "—";
+      var iconColor = available ? "color:var(--success);" : "color:var(--text-muted);";
+
+      html += '<div style="' + style + '"><span style="font-weight:700; ' + iconColor + '">' + icon + '</span> ' + label + '</div>';
+    });
+    html += '</div>';
+
+    if (isCurrent) {
+      html += '<div style="text-align:center; padding:10px; font-size:13px; font-weight:700; color:var(--primary); background:var(--primary-light); border-radius:var(--radius-sm);">現在のプラン</div>';
+    } else {
+      var isUpgrade = plans.indexOf(planId) > plans.indexOf(currentPlan);
+      var btnLabel = isUpgrade ? "⬆ アップグレード" : "ダウングレード";
+      var btnStyle = isUpgrade
+        ? "background:var(--primary); color:#fff;"
+        : "background:var(--border-light); color:var(--text-sub); border:1px solid var(--border-color);";
+      html += '<button class="btn btn-lg" onclick="requestPlanChange(\'' + planId + '\')" style="' + btnStyle + ' margin-top:8px;">' + btnLabel + '</button>';
+    }
+
+    html += '</div>';
+  });
+  html += '</div>';
+
+  document.getElementById("plan-comparison").innerHTML = html;
+}
+
+function requestPlanChange(newPlan) {
+  var p = PLAN_CONFIG[newPlan];
+  var isUpgrade = ["light", "standard", "premium"].indexOf(newPlan) > ["light", "standard", "premium"].indexOf(currentPlan);
+  var msg = isUpgrade
+    ? p.name + "プラン（¥" + p.price.toLocaleString() + "/月）にアップグレードしますか？\n\n機能は即時解放されます。料金は次回請求日から反映されます。"
+    : p.name + "プラン（¥" + p.price.toLocaleString() + "/月）に変更しますか？\n\n次回請求日から料金が変更されます。";
+
+  if (!confirm(msg)) return;
+
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({action: "changePlan", newPlan: newPlan})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.status === "success") {
+      currentPlan = newPlan;
+      planBroadcastLimit = PLAN_CONFIG[newPlan].autoMsgLimit === Infinity ? 999999 : PLAN_CONFIG[newPlan].autoMsgLimit;
+      showToast("✅ " + p.name + "プランに変更しました");
+      renderPlanTab();
+    } else {
+      showToast("エラー: " + (d.message || ""));
+    }
+  })
+  .catch(function() { showToast("通信エラー"); });
 }
 
 
