@@ -280,6 +280,50 @@
     }
     .cd-history-name { font-size: 14px; font-weight: 600; }
     .cd-history-meta { font-size: 12px; color: var(--text-muted); }
+
+    /* プランロックオーバーレイ */
+    .plan-lock-wrapper {
+      position: relative;
+    }
+    .plan-lock-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(248,250,252,0.88);
+      backdrop-filter: blur(2px);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .plan-lock-overlay .lock-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+    .plan-lock-overlay .lock-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+    .plan-lock-overlay .lock-btn {
+      padding: 6px 16px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .plan-lock-overlay .lock-btn:hover {
+      background: var(--primary-dark);
+    }
+
+
+  
   </style>
 </head>
 <body>
@@ -1963,7 +2007,11 @@ function hideLogin() {
   document.getElementById("login-screen").style.display = "none";
   loadOrders();
   orderInterval = setInterval(function() { if (currentTab === "orders") loadOrders(false); }, 15000);
+
+  // プラン情報を取得してロックを適用
+  fetchAndApplyPlan();
 }
+
 
 function switchTheme(mode) {
   // config テーブルに保存
@@ -2659,6 +2707,84 @@ function requestPlanChange(newPlan) {
     }
   })
   .catch(function() { showToast("通信エラー"); });
+}
+
+
+  // ============================================================
+// プランロック制御
+// ============================================================
+function fetchAndApplyPlan() {
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({action: "getPlan"})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.status === "success") {
+      currentPlan = d.plan || "light";
+      planBroadcastCount = d.broadcastCount || 0;
+      planBroadcastLimit = d.broadcastLimit || 30;
+      applyPlanLocks();
+    }
+  })
+  .catch(function(e) { console.error("Plan fetch error:", e); });
+}
+
+function applyPlanLocks() {
+  // 既存のロックを全て除去
+  document.querySelectorAll(".plan-lock-overlay").forEach(function(el) { el.remove(); });
+  document.querySelectorAll(".plan-lock-wrapper").forEach(function(el) {
+    el.classList.remove("plan-lock-wrapper");
+  });
+
+  var cfg = PLAN_CONFIG[currentPlan];
+  if (!cfg) return;
+
+  // AI自動配信の件数制限テキスト（AI利用状況タブ内）
+  var statusText = document.getElementById("auto-bc-status-text");
+  if (statusText && cfg.autoMsgLimit < 999999) {
+    var remaining = Math.max(0, cfg.autoMsgLimit - planBroadcastCount);
+    var limitHtml = ' <span style="color:var(--warning); font-size:11px; font-weight:600;">' +
+      '（残り ' + remaining + ' / ' + cfg.autoMsgLimit + '件）' +
+      '</span>';
+    // 既存のリミット表示を除去してから追加
+    var existingLimit = statusText.querySelector(".plan-limit-badge");
+    if (existingLimit) existingLimit.remove();
+    var span = document.createElement("span");
+    span.className = "plan-limit-badge";
+    span.innerHTML = limitHtml;
+    statusText.appendChild(span);
+  }
+
+  // 配信管理タブ: ライトプランで上限到達時、送信ボタンに警告を追加
+  if (cfg.autoMsgLimit < 999999 && planBroadcastCount >= cfg.autoMsgLimit) {
+    var sendBtn = document.getElementById("bc-send-btn");
+    if (sendBtn) {
+      var existingWarn = document.getElementById("bc-limit-warning");
+      if (!existingWarn) {
+        var warn = document.createElement("div");
+        warn.id = "bc-limit-warning";
+        warn.style.cssText = "background:var(--danger-light); border:1px solid var(--danger); border-radius:var(--radius-sm); padding:12px; margin-bottom:12px; font-size:13px; color:var(--danger); text-align:center;";
+        warn.innerHTML = '⚠️ 今月のAI自動配信上限（' + cfg.autoMsgLimit + '件）に達しました。' +
+          '<br><a href="#" onclick="switchTab(\'plan\'); return false;" style="color:var(--primary); font-weight:700;">プランをアップグレード →</a>';
+        sendBtn.parentElement.insertBefore(warn, sendBtn);
+      }
+    }
+  }
+}
+
+function addLockOverlay(element, featureKey) {
+  if (!element) return;
+  element.classList.add("plan-lock-wrapper");
+  var unlockPlan = getUnlockPlanName(featureKey);
+  var overlay = document.createElement("div");
+  overlay.className = "plan-lock-overlay";
+  overlay.innerHTML =
+    '<div class="lock-icon">🔒</div>' +
+    '<div class="lock-text">' + unlockPlan + '以上で利用可能</div>' +
+    '<button class="lock-btn" onclick="switchTab(\'plan\')">プランを変更する</button>';
+  element.appendChild(overlay);
 }
 
 
