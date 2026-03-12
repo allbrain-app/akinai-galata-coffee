@@ -2691,33 +2691,54 @@ function renderPlanTab() {
   document.getElementById("plan-comparison").innerHTML = html;
 }
 
-function requestPlanChange(newPlan) {
-  var p = PLAN_CONFIG[newPlan];
-  var isUpgrade = ["light", "standard", "premium"].indexOf(newPlan) > ["light", "standard", "premium"].indexOf(currentPlan);
-  var msg = isUpgrade
-    ? p.name + "プラン（¥" + p.price.toLocaleString() + "/月）にアップグレードしますか？\n\n機能は即時解放されます。料金は次回請求日から反映されます。"
-    : p.name + "プラン（¥" + p.price.toLocaleString() + "/月）に変更しますか？\n\n次回請求日から料金が変更されます。";
+async function requestPlanChange(newPlan) {
+  if (!confirm(PLAN_CONFIG[newPlan].name + "プラン（¥" + PLAN_CONFIG[newPlan].price.toLocaleString() + "/月）に変更しますか？")) return;
 
-  if (!confirm(msg)) return;
-
-  fetch(GAS_API_URL, {
+  var cfg = await fetch(GAS_API_URL, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({action: "changePlan", newPlan: newPlan})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.status === "success") {
-      currentPlan = newPlan;
-      planBroadcastLimit = PLAN_CONFIG[newPlan].autoMsgLimit === Infinity ? 999999 : PLAN_CONFIG[newPlan].autoMsgLimit;
-      showToast("✅ " + p.name + "プランに変更しました");
-      renderPlanTab();
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getPlan" })
+  }).then(function(r) { return r.json(); });
+
+  // Stripeサブスクリプションが未登録 → Checkout へ
+  if (!cfg.hasSubscription) {
+    showToast("Stripeの決済ページに移動します…", "info");
+    var res = await fetch(GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "createCheckout",
+        plan: newPlan,
+        returnUrl: window.location.href.split("?")[0]
+      })
+    }).then(function(r) { return r.json(); });
+
+    if (res.status === "success" && res.url) {
+      window.location.href = res.url;
     } else {
-      showToast("エラー: " + (d.message || ""));
+      showToast("エラー: " + (res.message || "Checkout作成失敗"), "error");
     }
-  })
-  .catch(function() { showToast("通信エラー"); });
+    return;
+  }
+
+  // Stripeサブスクリプションがある → プラン変更API
+  showToast("プラン変更中…", "info");
+  var res2 = await fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "changePlan", newPlan: newPlan })
+  }).then(function(r) { return r.json(); });
+
+  if (res2.status === "success") {
+    currentPlan = res2.plan;
+    showToast(PLAN_CONFIG[newPlan].name + "プランに変更しました！", "success");
+    renderPlanTab();
+    applyPlanLocks();
+  } else {
+    showToast("エラー: " + (res2.message || "変更失敗"), "error");
+  }
 }
+
 
 
   // ============================================================
