@@ -2632,13 +2632,13 @@ function renderPlanTab() {
     { key: "dedicatedSupport", label: "専任サポート" }
   ];
 
-  var html = '<div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:8px;">';
+  var html = '<div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; align-items:stretch;">';
   plans.forEach(function(planId) {
     var p = PLAN_CONFIG[planId];
     var isCurrent = planId === currentPlan;
     var borderStyle = isCurrent ? "2px solid var(--primary)" : "1px solid var(--border-color)";
 
-    html += '<div style="min-width:260px; flex:1; flex-shrink:0; background:var(--card-bg); border:' + borderStyle + '; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); position:relative;">';
+    html += '<div style="min-width:260px; flex:1; flex-shrink:0; background:var(--card-bg); border:' + borderStyle + '; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); position:relative; display:flex; flex-direction:column;">';
 
     if (planId === "standard") {
       html += '<div style="background:var(--primary); color:#fff; text-align:center; padding:4px 12px; border-radius:8px; font-size:11px; font-weight:700; margin-bottom:12px;">おすすめ</div>';
@@ -2649,7 +2649,7 @@ function renderPlanTab() {
     html += '<div style="font-size:24px; font-weight:700; color:var(--primary); margin:8px 0;">¥' + p.price.toLocaleString() + '<span style="font-size:12px; font-weight:400;">/月</span></div>';
     html += '</div>';
 
-    html += '<div style="margin:16px 0;">';
+    html += '<div style="margin:16px 0; flex:1;">';
     features.forEach(function(f) {
       var available = false;
       if (f.all) {
