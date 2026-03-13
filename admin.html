@@ -2433,27 +2433,40 @@ function renderAutoBroadcastToggle() {
   var statusText = document.getElementById("auto-bc-status-text");
   btn.disabled = false;
 
-  if (autoBcEnabled) {
+  var cfg = PLAN_CONFIG ? PLAN_CONFIG[currentPlan] : null;
+  var limitReached = cfg && cfg.autoMsgLimit < 999999 && planBroadcastCount >= cfg.autoMsgLimit;
+
+  if (limitReached) {
+    // 上限到達: ボタン無効化
+    btn.disabled = true;
+    btn.textContent = "🔒 上限に達しました";
+    btn.style.background = "var(--border-color)";
+    btn.style.color = "var(--text-muted)";
+    btn.style.cursor = "not-allowed";
+    statusText.innerHTML = '<span style="color:var(--danger); font-weight:600;">● 配信停止中</span> — 今月の上限に達しました';
+  } else if (autoBcEnabled) {
     btn.textContent = "⏸ 停止する";
     btn.style.background = "var(--danger)";
     btn.style.color = "#fff";
+    btn.style.cursor = "pointer";
     statusText.innerHTML = '<span style="color:var(--success); font-weight:600;">● 稼働中</span> — AIが毎日自動で配信しています';
   } else {
     btn.textContent = "▶ 自動化する";
     btn.style.background = "var(--success)";
     btn.style.color = "#fff";
+    btn.style.cursor = "pointer";
     statusText.innerHTML = '<span style="color:var(--text-muted); font-weight:600;">● 停止中</span> — 手動配信のみ有効です';
   }
 
-  // プラン別の配信上限表示を追加
-  var cfg = PLAN_CONFIG ? PLAN_CONFIG[currentPlan] : null;
+  // プラン別の配信上限表示
   if (cfg && cfg.autoMsgLimit < 999999) {
     var remaining = Math.max(0, cfg.autoMsgLimit - planBroadcastCount);
-    var color = remaining <= 5 ? "var(--danger)" : remaining <= 15 ? "var(--warning)" : "var(--success)";
+    var color = remaining === 0 ? "var(--danger)" : remaining <= 5 ? "var(--danger)" : remaining <= 15 ? "var(--warning)" : "var(--success)";
     statusText.innerHTML += '<br><span style="font-size:12px; color:' + color + '; font-weight:600;">📊 今月の自動配信: ' + planBroadcastCount + ' / ' + cfg.autoMsgLimit + '件（残り' + remaining + '件）</span>' +
       '<span style="font-size:11px; color:var(--text-muted);"> — <a href="#" onclick="switchTab(\'plan\'); return false;" style="color:var(--primary);">上限を解除</a></span>';
   }
 }
+
 
 
 function toggleAutoBroadcast() {
