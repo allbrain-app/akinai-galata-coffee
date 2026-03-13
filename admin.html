@@ -328,6 +328,20 @@
 </head>
 <body>
 
+<!-- 汎用確認モーダル -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box" style="max-width:400px; text-align:center; padding:32px;">
+    <div id="confirm-icon" style="font-size:36px; margin-bottom:12px;">⚠️</div>
+    <div id="confirm-message" style="font-size:14px; line-height:1.7; color:var(--text-sub); margin-bottom:24px; white-space:pre-line;"></div>
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-ghost btn-lg" style="flex:1;" onclick="closeConfirmModal(false)">キャンセル</button>
+      <button class="btn btn-primary btn-lg" style="flex:1;" id="confirm-ok-btn" onclick="closeConfirmModal(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+
+
 <!-- ======== ログイン画面 ======== -->
 <div id="login-screen" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center;">
   <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:32px; width:90%; max-width:360px; box-shadow:var(--shadow-md); text-align:center;">
@@ -827,6 +841,27 @@ window.onload = function() {
 var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings", "plan"];
 
 var tabOrder = ["orders", "menu", "customers", "sales", "broadcast", "aiusage", "settings", "plan"];
+
+var _confirmResolve = null;
+
+function showConfirm(message, options) {
+  options = options || {};
+  document.getElementById("confirm-icon").textContent = options.icon || "⚠️";
+  document.getElementById("confirm-message").textContent = message;
+  var okBtn = document.getElementById("confirm-ok-btn");
+  okBtn.textContent = options.okText || "OK";
+  okBtn.className = "btn btn-lg " + (options.okClass || "btn-primary");
+  okBtn.style.flex = "1";
+  document.getElementById("confirmModal").classList.add("show");
+  return new Promise(function(resolve) { _confirmResolve = resolve; });
+}
+
+function closeConfirmModal(result) {
+  document.getElementById("confirmModal").classList.remove("show");
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+
 
 function switchTab(tab) {
   currentTab = tab;
@@ -2469,7 +2504,7 @@ function renderAutoBroadcastToggle() {
 
 
 
-function toggleAutoBroadcast() {
+async function toggleAutoBroadcast() {
   var btn = document.getElementById("auto-bc-toggle-btn");
   var newState = !autoBcEnabled;
 
@@ -2477,7 +2512,12 @@ function toggleAutoBroadcast() {
     ? "自動配信を有効にしますか？\n設定した時間に対象顧客へAIがメッセージを送信します。"
     : "自動配信を停止しますか？\n手動配信は引き続き利用できます。";
 
-  if (!confirm(msg)) return;
+  var ok = await showConfirm(msg, {
+    icon: newState ? "🤖" : "⏸",
+    okText: newState ? "有効にする" : "停止する",
+    okClass: newState ? "btn-success" : "btn-danger"
+  });
+  if (!ok) return;
 
   btn.disabled = true;
   btn.textContent = "変更中...";
@@ -2506,6 +2546,7 @@ function toggleAutoBroadcast() {
     showToast("通信エラー");
   });
 }
+
 
 function renderAiUsage(d) {
   // サマリーカード
