@@ -1296,6 +1296,13 @@ function renderConsultFallback() {
 // シェア画像生成
 // ============================================================
 function generateTasteImage() {
+  // --- プランチェック ---
+  var currentPlan = window.__currentPlan || 'light';
+  if (!isFeatureAvailable(currentPlan, 'shareImage')) {
+    var unlockName = getUnlockPlanName('shareImage');
+    showToast('シェア画像は ' + unlockName + ' プラン以上でご利用いただけます');
+    return;
+  }
   openModal("shareImageModal");
   document.getElementById("share-loading").style.display = "block";
   document.getElementById("share-result").style.display = "none";
