@@ -12,6 +12,7 @@ var 味覚診断Cache = null;
 var totalOrderCount = 0;
 var currentScreen = "menu";
 var currentUserId = "";
+var currentPlan = "light"; // デフォルトは安全側
 
 // レベル定義
 var LEVELS = [
@@ -182,6 +183,39 @@ function initializeLiff() {
   });
 }
 
+function fetchCurrentPlan() {
+  var url = 'https://jwbzcfnxbcsouckxfeju.supabase.co/functions/v1/api';
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'getPlan' })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === 'success') {
+        currentPlan = d.plan || 'light';
+      }
+      applyShareImageLock();
+    })
+    .catch(function() {
+      currentPlan = 'light';
+      applyShareImageLock();
+    });
+}
+
+function applyShareImageLock() {
+  if (!isFeatureAvailable(currentPlan, 'shareImage')) {
+    var shareBtn = document.querySelector('.share-btn');
+    if (shareBtn) {
+      shareBtn.disabled = true;
+      shareBtn.style.opacity = '0.5';
+      shareBtn.style.cursor = 'not-allowed';
+      shareBtn.innerHTML = '🔒 シェア画像を作成（' + getUnlockPlanName('shareImage') + '以上）';
+    }
+  }
+}
+
+
 function fetchInitData(userId, displayName) {
   var url = GAS_API_URL + "?action=getInitData&userId=" + encodeURIComponent(userId);
   fetch(url)
@@ -201,6 +235,9 @@ function fetchInitData(userId, displayName) {
         totalOrderCount = Number(d.profile.orderCount) || 0;
         console.log("初期オーダー数:", totalOrderCount);
       }
+
+      // プラン情報を取得してシェア画像ボタンのロック判定
+      fetchCurrentPlan();
 
       // 最新5件だけ事前取得
       if (userId) {
@@ -223,6 +260,7 @@ function fetchInitData(userId, displayName) {
     }
   }, 10000);
 }
+
 
 function checkTableId() {
   var params = new URLSearchParams(window.location.search);
