@@ -1749,8 +1749,13 @@ function uploadShopLogo() {
   reader.readAsDataURL(file);
 }
 
-function removeShopLogo() {
-  if (!confirm("ロゴを削除しますか？")) return;
+async function removeShopLogo() {
+  var ok = await showConfirm("ロゴを削除しますか？", {
+    icon: "🗑",
+    okText: "削除する",
+    okClass: "btn-danger"
+  });
+  if (!ok) return;
   fetch(GAS_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1765,6 +1770,7 @@ function removeShopLogo() {
     loadSettings();
   });
 }
+
 
 
 // ============================================================
@@ -2276,7 +2282,7 @@ function generatePreview() {
     });
 }
 
-function sendBroadcast() {
+async function sendBroadcast() {
   var message = "";
   var templateId = "";
 
@@ -2301,9 +2307,12 @@ function sendBroadcast() {
 
   var segNames = { all: "全員", vip: "VIP", active: "アクティブ", dormant: "休眠", "new": "新規" };
   var segLabel = segNames[bcCurrentSegment] || bcCurrentSegment;
-  if (!confirm("「" + segLabel + "」セグメント（" + targetCount + "名）に以下のメッセージを配信します。\n\n" + message.substring(0, 100) + (message.length > 100 ? "..." : "") + "\n\nよろしいですか？")) {
-    return;
-  }
+  var ok = await showConfirm(
+    "「" + segLabel + "」セグメント（" + targetCount + "名）に以下のメッセージを配信します。\n\n" + message.substring(0, 100) + (message.length > 100 ? "..." : "") + "\n\nよろしいですか？",
+    { icon: "📣", okText: "配信する", okClass: "btn-primary" }
+  );
+  if (!ok) return;
+
 
   var btn = document.getElementById("bc-send-btn");
   btn.disabled = true;
@@ -2750,7 +2759,11 @@ function renderPlanTab() {
 }
 
 async function requestPlanChange(newPlan) {
-  if (!confirm(PLAN_CONFIG[newPlan].name + "プラン（¥" + PLAN_CONFIG[newPlan].price.toLocaleString() + "/月）に変更しますか？")) return;
+  var ok = await showConfirm(
+    PLAN_CONFIG[newPlan].name + "プラン（¥" + PLAN_CONFIG[newPlan].price.toLocaleString() + "/月）に変更しますか？",
+    { icon: "💎", okText: "変更する", okClass: "btn-primary" }
+  );
+  if (!ok) return;
 
   var cfg = await fetch(GAS_API_URL, {
     method: "POST",
