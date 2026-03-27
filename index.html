@@ -156,8 +156,12 @@
       </div>
       <button class="btn-primary" onclick="submitOrder()">注文する</button>
     </div>
+    <div style="padding:0 16px 16px;">
+      <button class="btn-ghost" style="width:100%; font-size:15px;" onclick="closeModal('cartModal'); openBill();">💰 お会計</button>
+    </div>
   </div>
 </div>
+
 
 <!-- ソムリエおすすめモーダル -->
 <div class="modal-backdrop" id="recModal">
@@ -230,7 +234,7 @@
     <!-- 注文明細 -->
     <div id="bill-content" style="display:none;">
       <div id="bill-table-info" style="text-align:center; margin-bottom:16px;">
-        <span style="background:var(--accent); color:#fff; padding:4px 14px; border-radius:8px; font-size:14px; font-weight:700;">Table <span id="bill-table-no">-</span></span>
+        <span style="background:var(--accent); color:#fff; padding:4px 14px; border-radius:8px; font-size:14px; font-weight:700;">受付 #<span id="bill-table-no">-</span></span>
       </div>
 
       <div id="bill-items" style="margin-bottom:16px;"></div>
@@ -252,7 +256,7 @@
       <div style="font-size:48px; margin-bottom:12px;">🧾</div>
       <div style="font-size:14px; color:var(--text-sub); margin-bottom:8px;">会計リクエスト済み</div>
       <div style="background:var(--accent); color:#fff; display:inline-block; padding:6px 20px; border-radius:10px; font-size:15px; font-weight:700; margin-bottom:16px;">
-        Table <span id="bill-req-table">-</span>
+        受付 #<span id="bill-req-table">-</span>
       </div>
       <div style="font-size:36px; font-weight:800; margin-bottom:8px;" id="bill-req-total">¥0</div>
       <div style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">この画面をスタッフにお見せください</div>
