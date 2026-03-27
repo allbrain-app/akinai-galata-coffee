@@ -1632,7 +1632,6 @@ function openBill() {
     body: JSON.stringify({
       action: "getBill",
       userId: currentUserId || "",
-      tableId: "" // ★変更: 空文字に変更
     })
   })
     .then(function(r) { return r.json(); })
@@ -1666,7 +1665,6 @@ function requestBill() {
     body: JSON.stringify({
       action: "requestBill",
       userId: currentUserId || "",
-      tableId: "", // ★変更: 空文字に変更
       total: billData.total || 0,
       displayName: ""
     })
@@ -1692,7 +1690,7 @@ function requestBill() {
 
 
 function renderBill(data) {
-  document.getElementById("bill-table-no").textContent = lastDailyNumber ? "#" + lastDailyNumber : "-"; // ★変更: 受付番号を表示
+  document.getElementById("bill-table-no").textContent = data.dailyNumber || "-";
   document.getElementById("bill-content").style.display = "block";
 
   var container = document.getElementById("bill-items");
@@ -1724,7 +1722,7 @@ function showBillRequested() {
   document.getElementById("bill-empty").style.display = "none";
   document.getElementById("bill-requested").style.display = "block";
 
-  document.getElementById("bill-req-table").textContent = lastDailyNumber ? "#" + lastDailyNumber : "-"; // ★変更: 受付番号を表示
+  document.getElementById("bill-req-table").textContent = billData.dailyNumber || "-";
 
   var total = 0;
   var html = "";
