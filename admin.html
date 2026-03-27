@@ -954,7 +954,7 @@ function displayOrders(orders) {
       var flashClass = isNew ? " new-order-flash" : "";
       var itemsHtml = order.items.map(function(item) { return '<div class="order-item-row">' + item + "</div>"; }).join("");
       html += '<div class="order-card' + flashClass + '" id="ocard-' + order.id + '">' +
-        '<div style="margin-bottom:12px;"><span class="order-table-badge">Table ' + order.tableId + "</span>" +
+        '<div style="margin-bottom:12px;"><span class="order-table-badge">受付 #' + order.tableId + "</span>" +
         '<span class="order-time">' + order.time + "</span>" +
         (isNew ? '<span class="new-badge">NEW</span>' : "") +
         '<div class="order-user">' + order.user + " 様</div></div>" +
