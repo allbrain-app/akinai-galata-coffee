@@ -33,15 +33,6 @@
   </div>
 </header>
 
-<!-- テーブル番号モーダル -->
-<div class="modal-backdrop center" id="tableModal">
-  <div class="modal-center-box" style="text-align:center;">
-    <h3 style="font-size:17px; font-weight:800; margin-bottom:16px;">テーブル番号を入力</h3>
-    <input type="number" id="table-input" class="table-input" placeholder="例: 1">
-    <button class="btn-primary" onclick="setTable()">OK</button>
-  </div>
-</div>
-
 <!-- ========================================
      メニュー画面
      ======================================== -->
@@ -214,7 +205,8 @@
     <div class="order-complete">
       <div class="oc-icon">✅</div>
       <h3>注文完了！</h3>
-      <p>ご注文ありがとうございます。</p>
+      <div id="daily-number-display" style="font-size:48px; font-weight:900; color:#2563eb; margin:12px 0;">-</div>
+      <p style="font-size:14px; color:#64748b;">上の番号でお呼びします</p>
       <div class="taste-update-link" onclick="closeModal('completeModal'); switchScreen('taste');">
         <div class="tul-title">📊 味覚診断が更新されました</div>
         <div class="tul-sub">あなたの味覚チャートを見てみる →</div>
