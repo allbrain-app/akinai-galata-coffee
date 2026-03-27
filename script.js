@@ -4,7 +4,7 @@
 var allMenuItems = [];
 var cart = [];
 var currentCategory = "ALL";
-var tableId = "";
+// ★変更: tableId 削除
 var historyCache = null;
 var tasteChartInstance = null;
 var currentOptionItem = null;
@@ -12,7 +12,8 @@ var 味覚診断Cache = null;
 var totalOrderCount = 0;
 var currentScreen = "menu";
 var currentUserId = "";
-var currentPlan = "light"; // デフォルトは安全側
+var currentPlan = "light";
+var lastDailyNumber = null; // ★変更: 受付番号を保持
 
 // レベル定義
 var LEVELS = [
@@ -41,7 +42,7 @@ function getNextLevel(orders) {
 // 画面切り替え
 // ============================================================
 function switchScreen(screen) {
-  document.body.style.overflow = ""; 
+  document.body.style.overflow = "";
   currentScreen = screen;
   document.querySelectorAll(".screen").forEach(function(el) {
     el.classList.remove("active");
@@ -139,7 +140,7 @@ function initializeLiff() {
     } catch (e) {}
   }
 
- // 店舗名・テーマを動的に取得
+  // 店舗名・テーマを動的に取得
   fetch(GAS_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -149,7 +150,6 @@ function initializeLiff() {
       var iconEl = document.getElementById('shop-icon');
       var nameEl = document.getElementById('shop-name-text');
 
-      // ロゴ優先表示：SHOP_LOGO_URL があれば画像、なければ SHOP_ICON の絵文字
       if (iconEl) {
         if (d.shopLogoUrl) {
           iconEl.innerHTML = '<img src="' + d.shopLogoUrl + '" alt="" style="height:28px; vertical-align:middle; border-radius:4px;">';
@@ -160,7 +160,6 @@ function initializeLiff() {
 
       if (nameEl && d.shopName) nameEl.textContent = d.shopName;
       if (d.shopName) document.title = d.shopName;
-      // テーマ適用
       var theme = d.themeMode || 'light';
       document.documentElement.setAttribute('data-theme', theme);
     }
@@ -174,17 +173,17 @@ function initializeLiff() {
     liff.getProfile().then(function(p) {
       currentUserId = p.userId;
       fetchInitData(p.userId, p.displayName);
-      checkTableId();
+      // ★変更: checkTableId() 削除
     });
   }).catch(function(err) {
     console.error("LIFF init error:", err);
     fetchInitData("", "ゲスト");
-    checkTableId();
+    // ★変更: checkTableId() 削除
   });
 }
 
 function fetchCurrentPlan() {
-  var url = 'https://jwbzcfnxbcsouckxfeju.supabase.co/functions/v1/api';
+  var url = GAS_API_URL; // ★変更: ハードコードURL修正
   fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -236,10 +235,8 @@ function fetchInitData(userId, displayName) {
         console.log("初期オーダー数:", totalOrderCount);
       }
 
-      // プラン情報を取得してシェア画像ボタンのロック判定
       fetchCurrentPlan();
 
-      // 最新5件だけ事前取得
       if (userId) {
         preloadHistoryData(userId, true);
       }
@@ -261,26 +258,7 @@ function fetchInitData(userId, displayName) {
   }, 10000);
 }
 
-
-function checkTableId() {
-  var params = new URLSearchParams(window.location.search);
-  if (params.get("table")) {
-    tableId = params.get("table");
-    localStorage.setItem("MO_TABLE", tableId);
-  } else if (localStorage.getItem("MO_TABLE")) {
-    tableId = localStorage.getItem("MO_TABLE");
-  } else {
-    openModal("tableModal");
-  }
-}
-
-function setTable() {
-  var val = document.getElementById("table-input").value.trim();
-  if (!val) return;
-  tableId = val;
-  localStorage.setItem("MO_TABLE", tableId);
-  closeModal("tableModal");
-}
+// ★変更: checkTableId 関数と setTable 関数を削除
 
 // ============================================================
 // カテゴリータブ
@@ -456,12 +434,7 @@ function removeFromCart(idx) {
 function submitOrder() {
   if (cart.length === 0) return;
 
-  // テーブル番号チェック
-  if (!tableId) {
-    showToast("テーブル番号を設定してください");
-    openModal("tableModal");
-    return;
-  }
+  // ★変更: テーブル番号チェック削除
 
   var orderItems = cart.map(function(item) {
     return { name: item.name, price: item.price };
@@ -489,7 +462,7 @@ function submitOrder() {
     accessToken: accessToken,
     userId: userId,
     userName: userName,
-    tableId: tableId,
+    // ★変更: tableId 削除
     items: orderItems
   };
 
@@ -522,6 +495,13 @@ function submitOrder() {
         updateCartBadge();
         closeModal("cartModal");
         historyCache = null;
+
+        // ★変更: 受付番号を表示
+        if (d.dailyNumber) {
+          lastDailyNumber = d.dailyNumber;
+          var numEl = document.getElementById("daily-number-display");
+          if (numEl) numEl.textContent = "#" + d.dailyNumber;
+        }
 
         var afterLevel = getLevel(totalOrderCount);
         if (afterLevel.lv > prevLevel.lv) {
@@ -595,6 +575,14 @@ function retryOrder() {
         updateCartBadge();
         closeModal("cartModal");
         historyCache = null;
+
+        // ★変更: リトライ時も受付番号を表示
+        if (d.dailyNumber) {
+          lastDailyNumber = d.dailyNumber;
+          var numEl = document.getElementById("daily-number-display");
+          if (numEl) numEl.textContent = "#" + d.dailyNumber;
+        }
+
         openModal("completeModal");
       } else {
         showOrderError(d.message || "注文処理に失敗しました", lastFailedPayload);
@@ -808,7 +796,6 @@ function renderHistoryInTaste(data) {
 
   var html = "";
 
-  // 最新5件を表示
   items.forEach(function(item) {
     var name = item.itemName || item.name || "不明";
     var price = item.price || 0;
@@ -817,7 +804,6 @@ function renderHistoryInTaste(data) {
       '<span class="h-price">¥' + Number(price).toLocaleString() + '</span></div>';
   });
 
-  // 「過去の注文をもっと見る」ボタン
   html += '<div id="history-more-section">';
   html += '<button id="history-more-btn" onclick="loadHistoryMonths()" style="'
     + 'width:100%;padding:14px;margin-top:12px;background:var(--bg-card);border:1px solid var(--border-color);'
@@ -833,7 +819,6 @@ function renderHistoryInTaste(data) {
   container.innerHTML = html;
 }
 
-// 月一覧を取得して表示
 function loadHistoryMonths() {
   var userId = currentUserId;
   if (!userId) {
@@ -875,7 +860,6 @@ function loadHistoryMonths() {
       });
       html += '</div>';
 
-      // 「閉じる」ボタン
       html += '<button onclick="closeHistoryMonths()" style="'
         + 'width:100%;padding:10px;margin-top:10px;background:none;border:none;'
         + 'font-size:13px;color:var(--text-muted);cursor:pointer;font-family:inherit;">'
@@ -892,7 +876,6 @@ function loadHistoryMonths() {
     });
 }
 
-// 月別履歴の「閉じる」
 function closeHistoryMonths() {
   document.getElementById("history-month-selector").style.display = "none";
   document.getElementById("history-month-items").style.display = "none";
@@ -903,7 +886,6 @@ function closeHistoryMonths() {
   btn.style.opacity = "1";
 }
 
-// 指定月の履歴を取得
 function loadMonthHistory(month) {
   var userId = currentUserId;
   if (!userId) {
@@ -918,7 +900,6 @@ function loadMonthHistory(month) {
   itemsContainer.innerHTML = '<div style="text-align:center;padding:20px 0;"><div class="dot-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
   itemsContainer.style.display = "block";
 
-  // 選択された月をハイライト
   var buttons = document.querySelectorAll("#history-month-selector button");
   buttons.forEach(function(b) {
     if (b.onclick && b.getAttribute("onclick") && b.getAttribute("onclick").indexOf(month) >= 0) {
@@ -1006,7 +987,6 @@ function renderTasteChart(data) {
   var ctx = document.getElementById("taste-chart").getContext("2d");
   if (tasteChartInstance) tasteChartInstance.destroy();
 
-  // テーマに応じたチャートカラーを取得
   var cs = getComputedStyle(document.documentElement);
   var chartBorder = cs.getPropertyValue('--chart-border').trim() || '#3b82f6';
   var chartFill = cs.getPropertyValue('--chart-fill').trim() || 'rgba(59,130,246,0.15)';
@@ -1203,7 +1183,6 @@ function renderPopularResults(ranking, aiComment) {
 }
 
 function renderPopularFallback() {
-  // APIが未実装の場合、ローカルデータからフォールバック表示
   var popular = allMenuItems.filter(function(i) { return !i.isSoldOut; }).slice(0, 5);
   var ranking = popular.map(function(item, idx) {
     return {
@@ -1215,7 +1194,6 @@ function renderPopularFallback() {
       match: null
     };
   });
-  // orderCount で降順ソート
   ranking.sort(function(a, b) { return b.orderCount - a.orderCount; });
   renderPopularResults(ranking, "みんなに人気のメニューをご紹介します！");
 }
@@ -1334,7 +1312,6 @@ function renderConsultFallback() {
 // シェア画像生成
 // ============================================================
 function generateTasteImage() {
-  // --- プランチェック ---
   var currentPlan = window.__currentPlan || 'light';
   if (!isFeatureAvailable(currentPlan, 'shareImage')) {
     var unlockName = getUnlockPlanName('shareImage');
@@ -1355,15 +1332,12 @@ function generateTasteImage() {
   canvas.height = 960;
   var ctx = canvas.getContext("2d");
 
-  // 背景（白）
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, 540, 960);
 
-  // 上部アクセントライン
   ctx.fillStyle = "#3b82f6";
   ctx.fillRect(0, 0, 540, 4);
 
-  // 店名
   var shopNameText = document.getElementById("shop-name-text");
   var shopName = shopNameText ? shopNameText.textContent : "BAR";
   ctx.fillStyle = "#9ca3af";
@@ -1371,23 +1345,19 @@ function generateTasteImage() {
   ctx.textAlign = "center";
   ctx.fillText(shopName, 270, 45);
 
-  // タイトル
   ctx.fillStyle = "#1f2937";
   ctx.font = "bold 28px sans-serif";
   ctx.fillText("My Taste 診断結果", 270, 85);
 
-  // レベル
   var curLevel = getLevel(totalOrderCount);
   ctx.fillStyle = "#3b82f6";
   ctx.font = "bold 22px sans-serif";
   ctx.fillText(curLevel.icon + " Lv." + curLevel.lv + " " + curLevel.name, 270, 125);
 
-  // 注文数
   ctx.fillStyle = "#6b7280";
   ctx.font = "15px sans-serif";
   ctx.fillText("累計 " + totalOrderCount + " オーダー", 270, 155);
 
-  // 区切り線
   ctx.strokeStyle = "#e5e7eb";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -1395,7 +1365,6 @@ function generateTasteImage() {
   ctx.lineTo(480, 175);
   ctx.stroke();
 
-  // レーダーチャート
   if (tasteData) {
     var cx = 270, cy = 380, radius = 120;
     var labels = ["塩味", "甘味", "酸味", "苦味", "コク"];
@@ -1404,7 +1373,6 @@ function generateTasteImage() {
     var angleStep = (Math.PI * 2) / 5;
     var startAngle = -Math.PI / 2;
 
-    // グリッド線
     for (var ring = 1; ring <= 5; ring++) {
       var r = radius * (ring / 5);
       ctx.beginPath();
@@ -1420,7 +1388,6 @@ function generateTasteImage() {
       ctx.stroke();
     }
 
-    // 軸線
     for (var j = 0; j < 5; j++) {
       var angle = startAngle + j * angleStep;
       ctx.beginPath();
@@ -1431,7 +1398,6 @@ function generateTasteImage() {
       ctx.stroke();
     }
 
-    // データ領域
     ctx.beginPath();
     for (var j = 0; j < 5; j++) {
       var angle = startAngle + j * angleStep;
@@ -1448,7 +1414,6 @@ function generateTasteImage() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // データポイント
     for (var j = 0; j < 5; j++) {
       var angle = startAngle + j * angleStep;
       var val = Math.min(values[j], maxVal);
@@ -1464,7 +1429,6 @@ function generateTasteImage() {
       ctx.stroke();
     }
 
-    // ラベル + 数値
     ctx.font = "bold 15px sans-serif";
     ctx.textAlign = "center";
     for (var j = 0; j < 5; j++) {
@@ -1479,7 +1443,6 @@ function generateTasteImage() {
       ctx.font = "bold 15px sans-serif";
     }
 
-    // 味覚傾向
     var maxKey = Object.keys(tasteData).reduce(function(a, b) { return tasteData[a] > tasteData[b] ? a : b; });
     var labelMap = { salty: "塩味", sweet: "甘味", sour: "酸味", bitter: "苦味", rich: "コク" };
     ctx.fillStyle = "#1f2937";
@@ -1493,7 +1456,6 @@ function generateTasteImage() {
     ctx.fillText("注文データがまだありません", 270, 380);
   }
 
-  // 区切り線
   ctx.strokeStyle = "#e5e7eb";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -1501,7 +1463,6 @@ function generateTasteImage() {
   ctx.lineTo(480, 585);
   ctx.stroke();
 
-  // 注文履歴（最新5件）
   if (historyCache) {
     var items = [];
     if (Array.isArray(historyCache)) { items = historyCache; }
@@ -1530,13 +1491,11 @@ function generateTasteImage() {
     }
   }
 
-  // フッター
   ctx.fillStyle = "#9ca3af";
   ctx.font = "13px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("AIソムリエがあなたの味覚を分析しました", 270, 920);
 
-  // アップロード
   var dataUrl = canvas.toDataURL("image/png");
   var base64 = dataUrl.replace(/^data:image\/png;base64,/, "");
 
@@ -1576,11 +1535,9 @@ function saveShareImage() {
   btn.textContent = "処理中...";
   btn.disabled = true;
 
-  // Canvas から Blob を生成してダウンロード試行
   fetch(shareImageUrl)
     .then(function(r) { return r.blob(); })
     .then(function(blob) {
-      // Web Share API（iOS Safari / Android Chrome 対応）
       if (navigator.share && navigator.canShare) {
         var file = new File([blob], "味覚診断.png", { type: "image/png" });
         if (navigator.canShare({ files: [file] })) {
@@ -1592,7 +1549,6 @@ function saveShareImage() {
           });
         }
       }
-      // フォールバック: <a download> でダウンロード
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
@@ -1604,7 +1560,6 @@ function saveShareImage() {
       showToast("画像を保存しました");
     })
     .catch(function() {
-      // 最終フォールバック: 別タブで開く
       window.open(shareImageUrl, "_blank");
       showToast("別タブで開きました。長押しで保存してください");
     })
@@ -1617,7 +1572,6 @@ function saveShareImage() {
 function shareToLine() {
   if (!shareImageUrl) return;
   if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
-    // LIFF内: shareTargetPicker を使用
     liff.shareTargetPicker([
       {
         type: "image",
@@ -1630,12 +1584,10 @@ function shareToLine() {
       }
     }).catch(function(e) {
       console.error("Share error:", e);
-      // フォールバック: LINE URLスキーム
       var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🤖\n" + shareImageUrl);
       window.open(lineUrl, "_blank");
     });
   } else {
-    // 外部ブラウザ: LINE URLスキーム
     var lineUrl = "https://line.me/R/share?text=" + encodeURIComponent("My Taste 診断結果 🤖\n" + shareImageUrl);
     window.open(lineUrl, "_blank");
   }
@@ -1652,7 +1604,7 @@ var billRequested = false;
 function closeBill() {
   var modal = document.getElementById("billModal");
   modal.classList.remove("show");
-  document.body.style.overflow = "";  // ← これも確認
+  document.body.style.overflow = "";
 }
 
 function openBill() {
@@ -1660,13 +1612,11 @@ function openBill() {
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
 
-  // リセット表示
   document.getElementById("bill-loading").style.display = "block";
   document.getElementById("bill-content").style.display = "none";
   document.getElementById("bill-requested").style.display = "none";
   document.getElementById("bill-empty").style.display = "none";
 
-  // 既にリクエスト済みならリクエスト画面を表示
   if (billRequested && billData) {
     showBillRequested();
     return;
@@ -1678,7 +1628,7 @@ function openBill() {
     body: JSON.stringify({
       action: "getBill",
       userId: currentUserId || "",
-      tableId: tableId || ""
+      tableId: "" // ★変更: 空文字に変更
     })
   })
     .then(function(r) { return r.json(); })
@@ -1712,7 +1662,7 @@ function requestBill() {
     body: JSON.stringify({
       action: "requestBill",
       userId: currentUserId || "",
-      tableId: tableId || "",
+      tableId: "", // ★変更: 空文字に変更
       total: billData.total || 0,
       displayName: ""
     })
@@ -1738,7 +1688,7 @@ function requestBill() {
 
 
 function renderBill(data) {
-  document.getElementById("bill-table-no").textContent = tableId || "-";
+  document.getElementById("bill-table-no").textContent = lastDailyNumber ? "#" + lastDailyNumber : "-"; // ★変更: 受付番号を表示
   document.getElementById("bill-content").style.display = "block";
 
   var container = document.getElementById("bill-items");
@@ -1770,7 +1720,7 @@ function showBillRequested() {
   document.getElementById("bill-empty").style.display = "none";
   document.getElementById("bill-requested").style.display = "block";
 
-  document.getElementById("bill-req-table").textContent = tableId || "-";
+  document.getElementById("bill-req-table").textContent = lastDailyNumber ? "#" + lastDailyNumber : "-"; // ★変更: 受付番号を表示
 
   var total = 0;
   var html = "";
