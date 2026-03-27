@@ -942,9 +942,64 @@ function loadOrders(manual) {
       if (manual) btn.textContent = "🔄";
       isFirstLoad = false;
     })
-    .catch(function() { if (manual) { btn.textContent = "⚠️"; setTimeout(function() { btn.textContent = "🔄"; }, 2000); } });
+    .catch(function() { if (manual) { btn.textContent = "⚠"; setTimeout(function() { btn.textContent = "🔄"; }, 2000); } });
+  // 会計待ちも同時取得
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getPendingBills" })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) { displayPendingBills(d.bills || []); })
+    .catch(function(e) { console.error("getPendingBills error:", e); });
 }
 
+function displayPendingBills(bills) {
+  var container = document.getElementById("bill-list");
+  var countBadge = document.getElementById("bill-count");
+  countBadge.textContent = bills.length;
+  if (!bills.length) {
+    container.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px 0;">会計待ちはありません</div>';
+    return;
+  }
+  var html = "";
+  bills.forEach(function(bill) {
+    var itemsHtml = bill.items.map(function(item) { return '<div class="order-item-row">' + item + '</div>'; }).join("");
+    html += '<div class="order-card">' +
+      '<div style="margin-bottom:12px;">' +
+      '<span class="order-table-badge" style="background:#f59e0b;">受付 #' + bill.dailyNumber + '</span>' +
+      '<span class="order-time">' + bill.displayName + ' 様</span>' +
+      '</div>' +
+      '<div class="order-items">' + itemsHtml + '</div>' +
+      '<div style="text-align:right; font-size:18px; font-weight:800; margin:8px 0;">¥' + bill.total.toLocaleString() + '</div>' +
+      '<button class="btn-primary" style="background:#f59e0b; width:100%;" onclick="completeBill(\'' + bill.userId + '\')">' +
+      '✅ 会計済みにする</button>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+  function completeBill(userId) {
+  if (!confirm("この会計を完了にしますか？")) return;
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "completeBill", userId: userId })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === "success") {
+        showToast("会計完了");
+        loadOrders();
+      } else {
+        showToast("エラー: " + (d.message || "不明"));
+      }
+    })
+    .catch(function(e) { showToast("通信エラー"); });
+}
+
+
+  
 function displayOrders(orders) {
   var container = document.getElementById("order-list");
   var countBadge = document.getElementById("order-count");
