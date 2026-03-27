@@ -492,6 +492,8 @@ function submitOrder() {
       if (d.status === "success") {
         totalOrderCount = newOrderCount;
         cart = [];
+        billRequested = false;
+        billData = null;
         updateCartBadge();
         closeModal("cartModal");
         historyCache = null;
@@ -572,6 +574,8 @@ function retryOrder() {
         var prevLevel = getLevel(totalOrderCount);
         totalOrderCount += lastFailedPayload ? 0 : cart.length;
         cart = [];
+        billRequested = false;
+        billData = null;
         updateCartBadge();
         closeModal("cartModal");
         historyCache = null;
