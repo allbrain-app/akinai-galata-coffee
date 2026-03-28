@@ -1963,8 +1963,8 @@ function renderFilteredSales() {
     });
   }
 
-  // ランキングをフィルタ期間で再計算（日別データから）
-  if (cutoff && data.daily) {
+  // フィルタ期間で売上サマリーを再計算（日別データから）
+  if (data.daily) {
     var filteredSales = 0;
     var filteredOrders = 0;
     data.daily.forEach(function(d) {
