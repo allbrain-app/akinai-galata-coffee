@@ -1017,8 +1017,8 @@ function renderTasteChart(data) {
       scales: {
         r: {
           beginAtZero: true,
-          max: 10,
-          ticks: { stepSize: 2, color: tickColor },
+          max: 100,
+          ticks: { stepSize: 20, color: tickColor },
           grid: { color: chartGrid },
           pointLabels: { color: chartLabel, font: { size: 13 } }
         }
