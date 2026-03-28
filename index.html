@@ -19,10 +19,13 @@
   <p>読み込み中...</p>
 </div>
 
+
+
 <!-- ヘッダー -->
 <header class="app-header">
   <span class="shop-name"><span id="shop-icon">🍸</span> <span id="shop-name-text">BAR</span></span>
   <div style="display:flex; gap:8px; align-items:center;">
+    <button class="coupon-btn" onclick="openCouponModal()" style="font-size:20px; background:none; border:none; cursor:pointer; position:relative;">🎟<span id="coupon-badge" class="cart-badge" style="display:none;">0</span></button>
     <button class="cart-btn" onclick="openCart()">
       🛒
       <span id="cart-badge" class="cart-badge" style="display:none;">0</span>
@@ -217,6 +220,30 @@
   </div>
 </div>
 
+<!-- クーポンモーダル -->
+<div class="modal-backdrop" id="couponModal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>🎟 クーポン</h3>
+      <button class="modal-close" onclick="closeModal('couponModal')">✕</button>
+    </div>
+    <div id="coupon-loading" style="text-align:center; padding:30px;">
+      <div class="dot-loader"><span></span><span></span><span></span></div>
+    </div>
+    <div id="coupon-list" style="display:none;"></div>
+    <div id="coupon-empty" style="display:none; text-align:center; padding:30px;">
+      <div style="font-size:40px; margin-bottom:12px;">🎫</div>
+      <div style="color:var(--text-muted); font-size:14px;">クーポンはまだありません</div>
+      <div style="color:var(--text-muted); font-size:12px; margin-top:8px;">レベルアップすると特典クーポンがもらえます！</div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
 <!-- 会計モーダル -->
 <div class="modal-backdrop" id="billModal">
   <div class="modal-sheet">
