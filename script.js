@@ -235,6 +235,17 @@ function fetchInitData(userId, displayName) {
         console.log("初期オーダー数:", totalOrderCount);
       }
 
+      if (d.benefits) {
+        LEVELS.forEach(function(lv) {
+          if (lv.lv >= 2 && d.benefits[String(lv.lv)]) {
+            lv.shopBenefit = d.benefits[String(lv.lv)];
+          }
+        });
+      }
+      renderLevelDisplay();
+      renderLevelList();
+      updateCouponBadge();
+
       fetchCurrentPlan();
 
       if (userId) {
@@ -257,6 +268,7 @@ function fetchInitData(userId, displayName) {
     }
   }, 10000);
 }
+
 
 // ★変更: checkTableId 関数と setTable 関数を削除
 
@@ -434,8 +446,6 @@ function removeFromCart(idx) {
 function submitOrder() {
   if (cart.length === 0) return;
 
-  // ★変更: テーブル番号チェック削除
-
   var orderItems = cart.map(function(item) {
     return { name: item.name, price: item.price };
   });
@@ -462,7 +472,6 @@ function submitOrder() {
     accessToken: accessToken,
     userId: userId,
     userName: userName,
-    // ★変更: tableId 削除
     items: orderItems
   };
 
@@ -498,7 +507,6 @@ function submitOrder() {
         closeModal("cartModal");
         historyCache = null;
 
-        // ★変更: 受付番号を表示
         if (d.dailyNumber) {
           lastDailyNumber = d.dailyNumber;
           var numEl = document.getElementById("daily-number-display");
@@ -508,6 +516,15 @@ function submitOrder() {
         var afterLevel = getLevel(totalOrderCount);
         if (afterLevel.lv > prevLevel.lv) {
           showLevelUp(afterLevel);
+          if (afterLevel.lv >= 2 && currentUserId) {
+            fetch(GAS_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "grantLevelCoupon", userId: currentUserId, level: afterLevel.lv })
+            }).then(function(r) { return r.json(); }).then(function(grantData) {
+              if (grantData.status === "success") updateCouponBadge();
+            }).catch(function() {});
+          }
         } else {
           openModal("completeModal");
         }
@@ -526,6 +543,7 @@ function submitOrder() {
       showOrderError("通信エラーが発生しました。電波状況を確認してください。", payload);
     });
 }
+
 
 // 注文エラー表示（リトライ付き）
 var lastFailedPayload = null;
