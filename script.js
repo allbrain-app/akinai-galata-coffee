@@ -1746,3 +1746,97 @@ function showBillRequested() {
 // 起動
 // ============================================================
 initializeLiff();
+
+
+// ============================================================
+// クーポン機能
+// ============================================================
+function openCouponModal() {
+  openModal("couponModal");
+  document.getElementById("coupon-loading").style.display = "block";
+  document.getElementById("coupon-list").style.display = "none";
+  document.getElementById("coupon-empty").style.display = "none";
+
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getCoupons", userId: currentUserId || "" })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      document.getElementById("coupon-loading").style.display = "none";
+      if (data.coupons && data.coupons.length > 0) {
+        renderCoupons(data.coupons);
+      } else {
+        document.getElementById("coupon-empty").style.display = "block";
+      }
+    })
+    .catch(function() {
+      document.getElementById("coupon-loading").style.display = "none";
+      document.getElementById("coupon-empty").style.display = "block";
+    });
+}
+
+function renderCoupons(coupons) {
+  var container = document.getElementById("coupon-list");
+  var html = "";
+  coupons.forEach(function(c) {
+    html += '<div class="coupon-card" id="coupon-' + c.id + '" style="background:linear-gradient(135deg,#fff9e6,#fff3cc); border:2px dashed #f0c040; border-radius:12px; padding:16px; margin:12px 16px;">' +
+      '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+      '<div>' +
+      '<div style="font-size:11px; color:#b8860b; font-weight:600;">Lv.' + c.level + ' 特典</div>' +
+      '<div style="font-size:15px; font-weight:700; margin-top:4px;">' + c.coupon_label + '</div>' +
+      '</div>' +
+      '<button onclick="useCoupon(' + c.id + ')" style="background:#f0c040; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;">使う</button>' +
+      '</div></div>';
+  });
+  container.innerHTML = html;
+  container.style.display = "block";
+}
+
+function useCoupon(couponId) {
+  if (!confirm("このクーポンを使用しますか？")) return;
+
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "useCoupon", couponId: couponId, userId: currentUserId || "" })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === "success") {
+        showToast("クーポンを使用しました！");
+        var card = document.getElementById("coupon-" + couponId);
+        if (card) card.remove();
+        updateCouponBadge();
+        var remaining = document.querySelectorAll("#coupon-list .coupon-card");
+        if (remaining.length === 0) {
+          document.getElementById("coupon-list").style.display = "none";
+          document.getElementById("coupon-empty").style.display = "block";
+        }
+      } else {
+        showToast(data.message || "エラーが発生しました");
+      }
+    })
+    .catch(function() { showToast("通信エラー"); });
+}
+
+function updateCouponBadge() {
+  fetch(GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getCoupons", userId: currentUserId || "" })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var badge = document.getElementById("coupon-badge");
+      var count = (data.coupons && data.coupons.length) || 0;
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    })
+    .catch(function() {});
+}
