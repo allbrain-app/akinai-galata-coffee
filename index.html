@@ -239,6 +239,18 @@
   </div>
 </div>
 
+<!-- クーポン使用確認モーダル -->
+<div class="modal-backdrop" id="couponConfirmModal" style="z-index:10001;">
+  <div class="modal-sheet" style="max-width:320px; text-align:center; padding:30px 24px;">
+    <div style="font-size:36px; margin-bottom:12px;">🎟</div>
+    <div style="font-size:16px; font-weight:700; margin-bottom:8px;" id="coupon-confirm-label"></div>
+    <div style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">このクーポンを使用しますか？</div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="closeModal('couponConfirmModal')" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border-color); background:var(--card-bg); font-size:14px; font-weight:600; cursor:pointer;">キャンセル</button>
+      <button id="coupon-confirm-btn" style="flex:1; padding:12px; border-radius:10px; border:none; background:#f0c040; color:#fff; font-size:14px; font-weight:600; cursor:pointer;">使用する</button>
+    </div>
+  </div>
+</div>
 
 
 
