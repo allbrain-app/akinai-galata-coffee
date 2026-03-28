@@ -1683,6 +1683,26 @@ function renderSettings(configs, prompts) {
   });
   html += '</div>';
 
+    // ========== レベル特典設定セクション ==========
+  html += '<div class="section-label">🎁 レベル特典設定</div>';
+  html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius); padding:20px; margin-bottom:20px; box-shadow:var(--shadow);">';
+  var levelKeys = [
+    { key: "LEVEL_2_BENEFIT", label: "Lv.2 レギュラー特典", desc: "5オーダーで到達" },
+    { key: "LEVEL_3_BENEFIT", label: "Lv.3 エキスパート特典", desc: "15オーダーで到達" },
+    { key: "LEVEL_4_BENEFIT", label: "Lv.4 マスター特典", desc: "30オーダーで到達" },
+    { key: "LEVEL_5_BENEFIT", label: "Lv.5 レジェンド特典", desc: "50オーダーで到達" }
+  ];
+  levelKeys.forEach(function(item) {
+    var c = configs.find(function(x) { return x.key === item.key; });
+    var val = c ? c.value : "";
+    html += '<div class="form-group">';
+    html += '<label class="form-label">' + item.label + ' <span style="font-weight:400; color:var(--text-muted);">(' + item.desc + ')</span></label>';
+    html += '<input class="form-input" id="cfg-' + item.key + '" value="' + escHtml(val) + '">';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  
   // ========== AIプロンプトセクション ==========
   html += '<div class="section-label">📝 AIプロンプト</div>';
   prompts.forEach(function(p) {
