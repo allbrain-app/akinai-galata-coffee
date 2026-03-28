@@ -1805,16 +1805,26 @@ function renderCoupons(coupons) {
       '<div style="font-size:11px; color:#b8860b; font-weight:600;">Lv.' + c.level + ' 特典</div>' +
       '<div style="font-size:15px; font-weight:700; margin-top:4px;">' + c.coupon_label + '</div>' +
       '</div>' +
-      '<button onclick="useCoupon(' + c.id + ')" style="background:#f0c040; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;">使う</button>' +
+      '<button onclick="useCoupon(' + c.id + ', \'' + c.coupon_label.replace(/'/g, "\\'") + '\')" style="background:#f0c040; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;">使う</button>' +
       '</div></div>';
   });
   container.innerHTML = html;
   container.style.display = "block";
 }
 
-function useCoupon(couponId) {
-  if (!confirm("このクーポンを使用しますか？")) return;
+var pendingCouponId = null;
 
+function useCoupon(couponId, label) {
+  pendingCouponId = couponId;
+  document.getElementById("coupon-confirm-label").textContent = label;
+  openModal("couponConfirmModal");
+  document.getElementById("coupon-confirm-btn").onclick = function() {
+    closeModal("couponConfirmModal");
+    executeUseCoupon(pendingCouponId);
+  };
+}
+
+function executeUseCoupon(couponId) {
   fetch(GAS_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
