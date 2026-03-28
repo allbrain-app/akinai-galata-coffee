@@ -642,6 +642,7 @@
   <div style="display:flex; gap:8px; margin-bottom:16px; overflow-x:auto;">
     <button class="segment-btn active" onclick="filterSalesPeriod('all')">全期間</button>
     <button class="segment-btn" onclick="filterSalesPeriod('today')">今日</button>
+    <button class="segment-btn" onclick="filterSalesPeriod('month')">今月</button>
     <button class="segment-btn" onclick="filterSalesPeriod('7')">直近7日</button>
     <button class="segment-btn" onclick="filterSalesPeriod('30')">直近30日</button>
     <button class="segment-btn" onclick="filterSalesPeriod('90')">直近3ヶ月</button>
@@ -1943,6 +1944,9 @@ function renderFilteredSales() {
   if (currentSalesPeriod === 'today') {
     var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     cutoff = new Date(todayStr);
+  } else if (currentSalesPeriod === 'month') {
+    var monthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-01';
+    cutoff = new Date(monthStr);
   } else if (currentSalesPeriod !== 'all') {
     var days = Number(currentSalesPeriod);
     cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -1982,6 +1986,7 @@ function renderFilteredSales() {
   var periodLabel = '本日';
   if (currentSalesPeriod === 'all') periodLabel = '全期間';
   else if (currentSalesPeriod === 'today') periodLabel = '本日';
+  else if (currentSalesPeriod === 'month') periodLabel = '今月';
   else if (currentSalesPeriod === '7') periodLabel = '直近7日間';
   else if (currentSalesPeriod === '30') periodLabel = '直近30日間';
   else if (currentSalesPeriod === '90') periodLabel = '直近3ヶ月';
@@ -1989,6 +1994,7 @@ function renderFilteredSales() {
   data._periodLabel = periodLabel;
   renderSales(data);
 }
+
 
 function renderSales(data) {
   var container = document.getElementById("sales-content");
